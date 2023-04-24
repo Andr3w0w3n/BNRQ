@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
-    QMainWindow, QListWidget, QtCore
+    QMainWindow, QListWidget, QtCore, QMessageBox
 )
 
 
@@ -22,6 +22,10 @@ class MainWindow(QMainWindow):
         self.file_paths = []
         self.nuke_exe = "C:/Program Files/"
         self.py_render_script = "./RenderScript.py"
+        
+        #TODO, have yet to fully implement
+        self.write_node_name = "Write1"
+        self.folder_search_start = "C:/"
 
         #Window setup
         self.resize(400, 400)
@@ -59,13 +63,13 @@ class MainWindow(QMainWindow):
     def update_nuke_path(self):
         folder_dialog = QFileDialog()
         folder_dialog.setNameFilter("Executables (*.exe)")
-        self.nuke_exe = folder_dialog.getOpenFileName(self, "Select File")[0]
+        self.nuke_exe = folder_dialog.getOpenFileName(self, "Select File", directory = "C:/")[0]
 
     
     def add_script_to_q(self):
         file_dialog = QFileDialog()
         file_dialog.setNameFilter("Nuke scripts (*.nk)")
-        file_path = file_dialog.getOpenFileName(self, "Select File")[0]
+        file_path = file_dialog.getOpenFileName(self, "Select File", directory = self.folder_search_start)[0]
         if file_path:
             self.file_paths.append(file_path)
             self.update_file_list()
@@ -94,16 +98,34 @@ class MainWindow(QMainWindow):
         progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
         progress_dialog.setMinimumDuration(0)
 
-        for i, script in enumerate(self.file_paths):
-            self.render_nuke_script(script)
-            self.file_paths.remove(script)
-            self.file_list.takeItem(self.file_list.row(script))
-            progress_dialog.setValue(i)
-            if progress_dialog.wasCanceled():
-                break
+        error_codes = {
+            104: f"There is no write node with name {self.write_node_name}.",
+            200: "Render was cancelled by user through Nuke.",
+            201: "Memory error occured with Nuke.",
+            202: "Progress was aborted.",
+            203: "There was a licensing error for Nuke.",
+            204: "The User aborted the render.",
+            206: "Unknown Render error occured.",
+            404: f"There was no script found named {script}."
+        }
 
+        for i, script in enumerate(self.file_paths):
+            output = self.render_nuke_script(script)
+            if progress_dialog.wasCanceled():
+                    break
+            if output in error_codes.values():               
+                error_box = QMessageBox()
+                error_box.setIcon(QMessageBox.Critical)
+                error_box.setText(error_codes[output])
+                error_box.exec_()
+                break
+            else:
+                self.file_paths.remove(script)
+                self.file_list.takeItem(self.file_list.row(script))
+                progress_dialog.setValue(i)
         progress_dialog.setValue(len(self.file_paths))
-    
+
+
     def render_nuke_script(self, script_path):
         cmd = [self.nuke_exe,
                 "-ti",
@@ -111,8 +133,9 @@ class MainWindow(QMainWindow):
                 script_path
                 ]
         print(cmd)
-        proc = subprocess.Popen(cmd)
-        proc.communicate()
+        proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
+        stderr = proc.communicate()[1]
+        return stderr.decode("utf-8")
 
 
 if __name__ == "__main__":
