@@ -59,6 +59,11 @@ class MainWindow(QMainWindow):
         self.remove_script.clicked.connect(self.remove_script_from_q)
         self.clear_files.clicked.connect(self.clear_file_list)
 
+    def get_default_nuke_path():
+        for root, dirs, files in os.walk(os.environ.get("ProgramFiles")):
+            if 'nuke.exe' in files:
+                return os.path.join(root, 'nuke.exe')
+
 
     def update_nuke_path(self):
         folder_dialog = QFileDialog()
@@ -94,10 +99,16 @@ class MainWindow(QMainWindow):
 
 
     def run_render(self):
+        
         progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", "Cancel", 0, len(self.file_paths), self)
         progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
         progress_dialog.setMinimumDuration(0)
 
+        def get_error_message(output, script):
+            if output == 404:
+                return f"There was no script found named {script}."
+            return error_codes.get(output)
+    
         error_codes = {
             104: f"There is no write node with name {self.write_node_name}.",
             200: "Render was cancelled by user through Nuke.",
@@ -106,17 +117,17 @@ class MainWindow(QMainWindow):
             203: "There was a licensing error for Nuke.",
             204: "The User aborted the render.",
             206: "Unknown Render error occured.",
-            404: f"There was no script found named {script}."
+            404: None #defined in "get_error_message()"
         }
 
-        for i, script in enumerate(self.file_paths):
+        for script in self.file_paths:
             output = self.render_nuke_script(script)
             if progress_dialog.wasCanceled():
                     break
             if output in error_codes.values():               
                 error_box = QMessageBox()
                 error_box.setIcon(QMessageBox.Critical)
-                error_box.setText(error_codes[output])
+                error_box.setText(get_error_message(output, script))
                 error_box.exec_()
                 break
             else:
