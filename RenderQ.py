@@ -5,17 +5,9 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
-    QMainWindow, QListWidget
+    QMainWindow, QListWidget, QtCore
 )
 
-def run_render(script_path):
-    cmd = [nuke_exe,
-            "-ti",
-            render_script,
-            script_path
-            ]
-    proc = subprocess.Popen(cmd)
-    proc.communicate()
 
 class MainWindow(QMainWindow):
     """
@@ -28,6 +20,8 @@ class MainWindow(QMainWindow):
 
         #variables
         self.file_paths = []
+        self.nuke_exe = "C:/Program Files/"
+        self.py_render_script = "./RenderScript.py"
 
         #Window setup
         self.resize(400, 400)
@@ -38,6 +32,8 @@ class MainWindow(QMainWindow):
         #elements
         self.add_script = QPushButton("+")
         self.remove_script = QPushButton("-")
+        self.clear_files = QPushButton("Clear")
+        self.render_button = QPushButton("Render")
         self.file_list = QListWidget()
 
         #layout setup
@@ -45,7 +41,7 @@ class MainWindow(QMainWindow):
         add_minus_layout.addWidget(self.add_script)
         add_minus_layout.addWidget(self.remove_script)
 
-        main_layout = QVBoxLayout()
+        main_layout = QHBoxLayout()
         main_layout.addWidget(self.file_list)
         main_layout.addLayout(add_minus_layout)
 
@@ -57,10 +53,18 @@ class MainWindow(QMainWindow):
         #connect the buttons
         self.add_script.clicked.connect(self.add_script_to_q)
         self.remove_script.clicked.connect(self.remove_script_from_q)
+        self.clear_files.clicked.connect(self.clear_file_list)
+
+
+    def update_nuke_path(self):
+        folder_dialog = QFileDialog()
+        folder_dialog.setNameFilter("Executables (*.exe)")
+        self.nuke_exe = folder_dialog.getOpenFileName(self, "Select File")[0]
 
     
     def add_script_to_q(self):
         file_dialog = QFileDialog()
+        file_dialog.setNameFilter("Nuke scripts (*.nk)")
         file_path = file_dialog.getOpenFileName(self, "Select File")[0]
         if file_path:
             self.file_paths.append(file_path)
@@ -79,7 +83,38 @@ class MainWindow(QMainWindow):
         for file_path in self.file_paths:
             self.file_list.addItem(file_path)
 
+
+    def clear_file_list(self):
+        self.file_paths = []
+        self.update_file_list()
+
+
+    def run_render(self):
+        progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", "Cancel", 0, len(self.file_paths), self)
+        progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
+        progress_dialog.setMinimumDuration(0)
+
+        for i, script in enumerate(self.file_paths):
+            self.render_nuke_script(script)
+            self.file_paths.remove(script)
+            self.file_list.takeItem(self.file_list.row(script))
+            progress_dialog.setValue(i)
+            if progress_dialog.wasCanceled():
+                break
+
+        progress_dialog.setValue(len(self.file_paths))
     
+    def render_nuke_script(self, script_path):
+        cmd = [self.nuke_exe,
+                "-ti",
+                self.py_render_script,
+                script_path
+                ]
+        print(cmd)
+        proc = subprocess.Popen(cmd)
+        proc.communicate()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     main_window = MainWindow()
