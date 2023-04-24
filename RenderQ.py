@@ -1,8 +1,8 @@
 import sys
 import os
 import subprocess
-from PyQt import QtWidgets, QtGui
-from PyQt.QtWidgets import (
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget
@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         self.resize(400, 400)
         #self.setWindowIcon(QIcon("ICON PATH GOES HERE"))
         self.setWindowTitle("Nuke Render Queue")
-        self.setContentMargins(40, 40, 40, 40)
+        self.setContentsMargins(40, 40, 40, 40)
         
         #elements
         self.add_script = QPushButton("+")
@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
 
     
     def remove_script_from_q(self):
-        selected_items = self.file_list_widget.selectedItems()
+        selected_items = self.file_list.selectedItems()
         for item in selected_items:
             self.file_paths.remove(item.text())
             self.file_list.takeItem(self.file_list.row(item))
