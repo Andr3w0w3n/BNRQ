@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
 
         #default values
         self.file_paths = []
-        self.nuke_exe = "C:/Program Files/Nuke14.0v2/Nuke14.0.exe"
+        self.nuke_exe = "C:/Program Files/Nuke13.2v5/Nuke13.2.exe"
         self.py_render_script = "./RenderScript.py"
         #TODO - has yet to be fully implemented
         self.write_node_name = "Write1"
@@ -163,7 +163,10 @@ class MainWindow(QMainWindow):
             404: None #defined in "get_error_message()"
         }
 
+        progress = 0
+        progress_dialog.setValue(int(progress))
         for script in self.file_paths:
+            QtWidgets.QApplication.processEvents()
             output = self.render_nuke_script(script)
             if progress_dialog.wasCanceled():
                     break
@@ -175,10 +178,15 @@ class MainWindow(QMainWindow):
                 break
             else:
                 render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
-                self.file_paths.remove(script)
-                self.file_list.takeItem(self.file_list.row(render_item))
-                progress_dialog.setValue(script)
-        progress_dialog.setValue(len(self.file_paths))
+                #self.file_paths.remove(script)
+                self.file_list.takeItem(self.file_list.row(render_item[0]))
+                progress += 100/len(self.file_paths)
+                progress_dialog.setValue(int(progress))
+                QtWidgets.QApplication.processEvents()
+        progress_dialog.setValue(100)
+        self.clear_file_list()
+        progress_dialog.close()
+        
 
 
     def render_nuke_script(self, script_path):
