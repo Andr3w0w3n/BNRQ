@@ -1,12 +1,13 @@
 import sys
 import os
 import subprocess
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
-    QMainWindow, QListWidget, QtCore, QMessageBox
+    QMainWindow, QListWidget, QMessageBox
 )
+from PyQt5.QtCore import(QSettings)
 
 
 class MainWindow(QMainWindow):
@@ -18,17 +19,22 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        #variables
+        #default values
         self.file_paths = []
-        self.nuke_exe = "C:/Program Files/"
+        self.nuke_exe = "C:/Program Files/Nuke14.0v2/Nuke14.0.exe"
         self.py_render_script = "./RenderScript.py"
-        
-        #TODO, have yet to fully implement
+        #TODO - has yet to be fully implemented
         self.write_node_name = "Write1"
-        self.folder_search_start = "C:/"
+        #self.folder_search_start = "C:/"
+        #home computer test line
+        self.folder_search_start = "E:/Users/epica/OneDrive/Documents/Side Projects/Nuke/Add-Ons"
+        
+        #load settings
+        self.load_settings()
+        
 
-        #Window setup
-        self.resize(400, 400)
+        #Window set
+        self.resize(800, 400)
         #self.setWindowIcon(QIcon("ICON PATH GOES HERE"))
         self.setWindowTitle("Nuke Render Queue")
         self.setContentsMargins(40, 40, 40, 40)
@@ -37,6 +43,7 @@ class MainWindow(QMainWindow):
         self.add_script = QPushButton("+")
         self.remove_script = QPushButton("-")
         self.clear_files = QPushButton("Clear")
+        self.clear_files.setStyleSheet("background-color: red;")
         self.render_button = QPushButton("Render")
         self.file_list = QListWidget()
 
@@ -44,10 +51,15 @@ class MainWindow(QMainWindow):
         add_minus_layout = QHBoxLayout()
         add_minus_layout.addWidget(self.add_script)
         add_minus_layout.addWidget(self.remove_script)
+        
+        button_layout = QVBoxLayout()
+        button_layout.addLayout(add_minus_layout)
+        button_layout.addWidget(self.render_button)
+        button_layout.addWidget(self.clear_files)
 
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.file_list)
-        main_layout.addLayout(add_minus_layout)
+        main_layout.addLayout(button_layout)
 
         #element layout setup
         central_widget = QWidget()
@@ -58,12 +70,43 @@ class MainWindow(QMainWindow):
         self.add_script.clicked.connect(self.add_script_to_q)
         self.remove_script.clicked.connect(self.remove_script_from_q)
         self.clear_files.clicked.connect(self.clear_file_list)
+        self.render_button.clicked.connect(self.run_render)
 
+
+    def load_settings(self):
+        settings = QSettings()
+        settings.beginGroup("Paths")
+        self.nuke_exe = settings.value("Nuke executable", self.nuke_exe)
+        self.folder_search_start = settings.value("Search start", self.folder_search_start)
+        settings.endGroup()
+
+        settings.beginGroup("Write Node")
+        self.write_node_name = settings.value("write_node_name", self.write_node_name)
+        settings.endGroup()
+
+    
+    def save_settings(self):
+        settings = QSettings()
+        settings.beginGroup("Paths")
+        settings.setValue("Nuke executable", self.nuke_exe)
+        settings.setValue("Search start", self.folder_search_start)
+        settings.endGroup()
+
+        settings.beginGroup("Write Node")
+        settings.setValue("write_node_name", self.write_node_name)
+        settings.endGroup()
+    
+    
+    def closeEvent(self, event):
+        self.save_settings()
+        super().closeEvent(event)
+    
+    """
     def get_default_nuke_path():
         for root, dirs, files in os.walk(os.environ.get("ProgramFiles")):
             if 'nuke.exe' in files:
                 return os.path.join(root, 'nuke.exe')
-
+    """
 
     def update_nuke_path(self):
         folder_dialog = QFileDialog()
@@ -73,7 +116,7 @@ class MainWindow(QMainWindow):
     
     def add_script_to_q(self):
         file_dialog = QFileDialog()
-        file_dialog.setNameFilter("Nuke scripts (*.nk)")
+        file_dialog.setNameFilter("Nuke scripts (*.nk *.nknc)")
         file_path = file_dialog.getOpenFileName(self, "Select File", directory = self.folder_search_start)[0]
         if file_path:
             self.file_paths.append(file_path)
@@ -131,9 +174,10 @@ class MainWindow(QMainWindow):
                 error_box.exec_()
                 break
             else:
+                render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
                 self.file_paths.remove(script)
-                self.file_list.takeItem(self.file_list.row(script))
-                progress_dialog.setValue(i)
+                self.file_list.takeItem(self.file_list.row(render_item))
+                progress_dialog.setValue(script)
         progress_dialog.setValue(len(self.file_paths))
 
 
