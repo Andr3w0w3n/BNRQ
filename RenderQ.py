@@ -13,12 +13,42 @@ from PyQt5.QtCore import(QSettings)
 
 
 class main_window_tab(QWidget):
+
+    """
+        This class defines the main render page, containing a list of Nuke scripts and a set of buttons to add/remove them, clear the list, and start a render process on the list. 
+
+        Args:
+            settings (QSettings): An instance of QSettings containing the user-defined and pre-set settings for the application.
+
+        Attributes:
+            settings (QSettings): An instance of QSettings containing the user-defined settings for the application.
+            file_paths (list): A list containing the paths of the Nuke scripts to be rendered.
+            nuke_exe (str): The path of the Nuke executable file, read from the user-defined settings.
+            py_render_script (str): The path of the Python script used to render the Nuke scripts.
+            write_node_name (str): The name of the Write node to be rendered in the Nuke scripts.
+            folder_search_start (str): The default folder to search for Nuke scripts when adding them to the list.
+            add_script (QPushButton): A button to add Nuke scripts to the list.
+            remove_script (QPushButton): A button to remove Nuke scripts from the list.
+            clear_files (QPushButton): A button to clear the list of Nuke scripts.
+            render_button (QPushButton): A button to start the rendering process.
+            file_list (QListWidget): A widget containing the list of Nuke scripts to be rendered.
+
+        Methods:
+            add_script_to_q(): Add a Nuke script to the list.
+            remove_script_from_q(): Remove the selected Nuke scripts from the list.
+            update_file_list(): Update the file list widget with the current list of Nuke scripts.
+            clear_file_list(): Clear the list of Nuke scripts.
+            run_render(): Start the rendering process for the Nuke scripts in the list.
+            render_nuke_script(script_path): Execute the RenderScript.py script with the specified Nuke script as argument, and return the output/error message.
+    """
+
+
     def __init__(self, settings):
         super().__init__()
         
         self.settings = settings
         self.file_paths = []
-        self.nuke_exe = self.settings.value("Nuke executable")
+        self.nuke_exe = self.settings.nuke_exe
         #self.nuke_exe = "C:/Program Files/Nuke13.2v5/Nuke13.2.exe"
         self.py_render_script = "./RenderScript.py"
         #TODO - has yet to be fully implemented
@@ -58,8 +88,10 @@ class main_window_tab(QWidget):
     
     def add_script_to_q(self):
         file_dialog = QFileDialog()
-        file_dialog.setNameFilter("Nuke scripts (*.nk *.nknc)")
-        file_path = file_dialog.getOpenFileName(self, "Select File", directory = self.folder_search_start)[0]
+        file_path = file_dialog.getOpenFileName(self, 
+                                                "Select File", 
+                                                self.settings.folder_search_start, 
+                                                "Nuke Scripts (*.nk) ;; All Files(*)")[0]
         if file_path:
             self.file_paths.append(file_path)
             self.update_file_list()
@@ -113,9 +145,9 @@ class main_window_tab(QWidget):
         progress_dialog.setValue(int(progress))
         for script in self.file_paths:            
             QtWidgets.QApplication.processEvents()
-            output = self.render_nuke_script(script)
             if progress_dialog.wasCanceled():
                     break
+            output = self.render_nuke_script(script)
             if output in error_codes.values():               
                 error_box = QMessageBox()
                 error_box.setIcon(QMessageBox.Critical)
@@ -160,6 +192,8 @@ class preferences_tab(QWidget):
         nuke_exe_file_finder.clicked.connect(self.update_nuke_path)
         search_start_label = QLabel("File Search Start:")
         self.search_start_edit = QLineEdit(self.settings.folder_search_start)
+        file_path_start_finder = QPushButton("File Explorer")
+        file_path_start_finder.clicked.connect(self.update_file_start_path)
         write_node_label = QLabel("Write Node Name:")
         self.write_node_edit = QLineEdit(self.settings.write_node_name)
         save_button = QPushButton("Save")
@@ -174,6 +208,7 @@ class preferences_tab(QWidget):
         search_start_layout = QHBoxLayout()
         search_start_layout.addWidget(search_start_label)
         search_start_layout.addWidget(self.search_start_edit)
+        search_start_layout.addWidget(file_path_start_finder)
         write_node_layout = QHBoxLayout()
         write_node_layout.addWidget(write_node_label)
         write_node_layout.addWidget(self.write_node_edit)
@@ -191,15 +226,26 @@ class preferences_tab(QWidget):
     
     def update_nuke_path(self):
         folder_dialog = QFileDialog()
-        #need to figure out how to only show executables in this, as this code does not only show executables
-        folder_dialog.setNameFilter("Executables (*.exe)")
         folder_dialog.setFileMode(QFileDialog.ExistingFile)
         folder_dialog.setFilter(QtCore.QDir.Executable)
-        temp = folder_dialog.getOpenFileName(self, "Select File", directory = self.settings.value("Nuke executable"))[0]
-        if temp:
-            self.settings.nuke_exe = temp
-        
+        tempPath = folder_dialog.getOpenFileName(self, 
+                                             "Select File", 
+                                             self.settings.folder_search_start, 
+                                             "Executables (*.exe) ;; All Files(*)")[0]
+        if tempPath:
+            self.settings.nuke_exe = tempPath
         self.nuke_exe_edit.setText(self.settings.nuke_exe)
+
+    def update_file_start_path(self):
+        folder_dialog = QFileDialog()
+        folder_dialog.setFileMode(QFileDialog.ExistingFile)
+        folder_dialog.setFilter(QtCore.QDir.Executable)
+        tempPath = folder_dialog.getExistingDirectory(self, 
+                                             "Select File", 
+                                             self.settings.folder_search_start)
+        if tempPath:
+            self.settings.folder_search_start = tempPath
+        self.search_start_edit.setText(self.settings.folder_search_start)
 
 
 class settings(QtCore.QSettings):
