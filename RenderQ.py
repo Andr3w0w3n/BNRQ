@@ -1,6 +1,8 @@
 import sys
 import os
 import subprocess
+import concurrent.futures
+import threading
 import time
 import pdb
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -52,8 +54,10 @@ class main_window_tab(QWidget):
         #self.nuke_exe = "C:/Program Files/Nuke13.2v5/Nuke13.2.exe"
         self.py_render_script = "./RenderScript.py"
         #TODO - has yet to be fully implemented
-        self.write_node_name = self.settings.value("")
-        self.folder_search_start = self.settings.value("")
+        self.write_node_name = self.settings.write_node_name
+        self.folder_search_start = self.settings.folder_search_start
+        #careful using this value as the max workers, it can cause all the scripts to be rendered at once
+        self.max_num_threads = os.cpu_count()
         #home computer test line
         #self.folder_search_start = "E:/Users/epica/OneDrive/Documents/Side Projects/Nuke/Add-Ons"
         
@@ -118,18 +122,16 @@ class main_window_tab(QWidget):
     def run_render(self):
         
         if not self.file_paths:
-            return None
-
-        progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", "Cancel", 0, len(self.file_paths), self)
-        progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
-        progress_dialog.setMinimumDuration(0)
+            QtWidgets.QMessageBox.warning(self, "Warning", "There are no files in the queue!")
+            return
+        
 
         def get_error_message(output, script):
             if output == 404:
                 return f"There was no script found named {script}."
-            return error_codes.get(output)
+            return self.error_codes.get(output)
     
-        error_codes = {
+        self.error_codes = {
             104: f"There is no write node with name {self.write_node_name}.",
             200: "Render was cancelled by user through Nuke.",
             201: "Memory error occured with Nuke.",
@@ -141,29 +143,56 @@ class main_window_tab(QWidget):
         }
 
         progress = 0
-        progress_dialog.setRange(0,len(self.file_paths))
-        progress_dialog.setValue(int(progress))
+        self.progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", "Cancel", 0, len(self.file_paths), self)
+        self.progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setRange(0,len(self.file_paths))
+        self.progress_dialog.setValue(int(progress))
+        QtWidgets.QApplication.processEvents()
+        
+        
         for script in self.file_paths:            
             QtWidgets.QApplication.processEvents()
-            if progress_dialog.wasCanceled():
-                    break
+            
+            if self.progress_dialog.wasCanceled():
+                self.progress_dialog.close() 
+                QtWidgets.QMessageBox.warning(self, "Warning", "Rendering was cancelled")
+                print("I got into the rendering was cancelled section")
+                return
+            
+            """
+            self.thread = threading.Thread(target=self.render_nuke_script, args=(script,))
+            self.thread.start()
+            self.thread.join()
+            output = self.thread.result
+            """
+
             output = self.render_nuke_script(script)
-            if output in error_codes.values():               
+            print("Output: " + str(output))
+
+            if output in self.error_codes.values(): 
                 error_box = QMessageBox()
                 error_box.setIcon(QMessageBox.Critical)
                 error_box.setText(get_error_message(output, script))
                 error_box.exec_()
-                break
+                QtWidgets.QApplication.processEvents()
+                print("I got into the error section")          
+                return
             else:
                 render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
-                #self.file_paths.remove(script)
+                self.file_paths.remove(script)
                 self.file_list.takeItem(self.file_list.row(render_item[0]))
                 progress += 1
-                progress_dialog.setValue(int(progress))
+                self.progress_dialog.setValue(int(progress))
                 QtWidgets.QApplication.processEvents()
-        progress_dialog.setValue(100)
+                print(f"rendered {script}")
+
+        self.progress_dialog.setValue(100)
+        #making double sure
         self.clear_file_list()
-        progress_dialog.close()        
+        
+        self.progress_dialog.close()
+        print("done")
 
 
     def render_nuke_script(self, script_path):
@@ -175,7 +204,8 @@ class main_window_tab(QWidget):
         print(cmd)
         proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
         stderr = proc.communicate()[1]
-        return stderr.decode("utf-8")
+        return stderr.decode("utf-8")           
+
 
 
 class preferences_tab(QWidget):
@@ -301,7 +331,6 @@ class settings(QtCore.QSettings):
                         nuke_path = os.path.join(root, file)
 
         return nuke_path
-
 
 
 class MainWindow(QMainWindow):

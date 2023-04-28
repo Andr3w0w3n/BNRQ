@@ -6,13 +6,13 @@ import logging
 
 #Exit codes with constants
 EXIT_NO_WRITE_NODE = 104
-EXIT_UNKNOWN_RENDER_ERROR = 206
 EXIT_RENDER_CANCELLED = 200
 EXIT_RENDER_ERROR = 201
 EXIT_RENDER_MEMORY_ERROR = 202
 EXIT_RENDER_PROGRESS_ABORTED = 203
 EXIT_RENDER_LICENSE_ERROR = 204
 EXIT_RENDER_USER_ABORT = 205
+EXIT_UNKNOWN_RENDER_ERROR = 206
 EXIT_NO_SCRIPT = 404
 
 
@@ -59,7 +59,7 @@ def render_script(ns, wn):
     """
 
     error_codes = {
-        nuke.RenderCancelled: EXIT_RENDER_CANCELLED,
+        nuke.ExecuteAborted: EXIT_RENDER_CANCELLED,
         nuke.RenderError: EXIT_RENDER_ERROR,
         nuke.RenderMemoryError: EXIT_RENDER_MEMORY_ERROR,
         nuke.RenderProgressAborted: EXIT_RENDER_PROGRESS_ABORTED,
