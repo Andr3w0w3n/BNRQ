@@ -53,11 +53,9 @@ def render_script(ns, wn):
         nuke.RenderProgressAborted: If the render was aborted.
         nuke.RenderLicenseError: If there was a problem with the Nuke license.
         nuke.RenderUserAbort: If the render was aborted by the user.
-
-    Returns:
-        None.
     """
 
+    #these errors are wrong, have to look into proper error types
     error_codes = {
         nuke.ExecuteAborted: EXIT_RENDER_CANCELLED,
         nuke.RenderError: EXIT_RENDER_ERROR,
@@ -67,6 +65,7 @@ def render_script(ns, wn):
         nuke.RenderUserAbort: EXIT_RENDER_USER_ABORT,
     }
 
+    """
     try:
         nuke.execute(wn, start = ns.firstFrame(), end = ns.lastFrame(), incr = 1)
     except Exception as e:
@@ -75,7 +74,12 @@ def render_script(ns, wn):
         else:
             print("An unknown render error occurred.")
             sys.exit(206)
+    """
 
+    try:
+        nuke.execute(wn, start = ns.firstFrame(), end = ns.lastFrame(), incr = 1)
+    except Exception as e:
+        sys.exit(EXIT_RENDER_ERROR)
 
 def main(nuke_script = nuke.Root()):
     
@@ -84,12 +88,6 @@ def main(nuke_script = nuke.Root()):
 
     Args:
         nuke_script (nuke.Script): the Nuke script to render
-
-    Raises:
-        None.
-
-    Returns:
-        None.
     """
 
     #setting the logging [not being used]

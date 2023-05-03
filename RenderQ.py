@@ -134,10 +134,11 @@ class main_window_tab(QWidget):
         self.error_codes = {
             104: f"There is no write node with name {self.write_node_name}.",
             200: "Render was cancelled by user through Nuke.",
-            201: "Memory error occured with Nuke.",
-            202: "Progress was aborted.",
-            203: "There was a licensing error for Nuke.",
-            204: "The User aborted the render.",
+            201: "Render produced an error",
+            203: "Memory error occured with Nuke.",
+            204: "Progress was aborted.",
+            205: "There was a licensing error for Nuke.",
+            206: "The User aborted the render.",
             206: "Unknown Render error occured.",
             404: None #defined in "get_error_message()"
         }
