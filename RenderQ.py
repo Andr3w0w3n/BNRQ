@@ -5,6 +5,7 @@ import concurrent.futures
 import threading
 import time
 import pdb
+import statistics
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
@@ -42,6 +43,7 @@ class main_window_tab(QWidget):
             clear_file_list(): Clear the list of Nuke scripts.
             run_render(): Start the rendering process for the Nuke scripts in the list.
             render_nuke_script(script_path): Execute the RenderScript.py script with the specified Nuke script as argument, and return the output/error message.
+            get_render_times(render_times): Find the average(mean) time of each render to show the user an estimated finish time
     """
 
 
@@ -51,16 +53,12 @@ class main_window_tab(QWidget):
         self.settings = settings
         self.file_paths = []
         self.nuke_exe = self.settings.nuke_exe
-        #self.nuke_exe = "C:/Program Files/Nuke13.2v5/Nuke13.2.exe"
-        self.py_render_script = r"./RenderScript.py"
-        self.py_render_script = r"V:\NUKE Addons - KEEP\Created Scripts\RenderQ\RenderScript.py"
-        #TODO - has yet to be fully implemented
+        self.py_render_script = r"./RenderScript.py"      
         self.write_node_name = self.settings.write_node_name
+        #TODO - has yet to be fully implemented
         self.folder_search_start = self.settings.folder_search_start
         #careful using this value as the max workers, it can cause all the scripts to be rendered at once
         self.max_num_threads = os.cpu_count()
-        #home computer test line
-        #self.folder_search_start = "E:/Users/epica/OneDrive/Documents/Side Projects/Nuke/Add-Ons"
         
         self.add_script = QPushButton("+")
         self.remove_script = QPushButton("-")
@@ -145,15 +143,21 @@ class main_window_tab(QWidget):
         }
 
         progress = 0
+        render_times = []
+        total_script_count = len(self.file_paths)
         self.progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", "Cancel", 0, len(self.file_paths), self)
         self.progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
         self.progress_dialog.setMinimumDuration(0)
-        self.progress_dialog.setRange(0,len(self.file_paths))
+        self.progress_dialog.setRange(0,total_script_count)
         self.progress_dialog.setValue(int(progress))
+        #self.progress_dialog.setDetailsVisible(True)
+        #self.progress_dialog.setDetails(f"At least 1 script has to be rendered \nto estimate time left")
         QtWidgets.QApplication.processEvents()
         
         temp_file_paths = self.file_paths.copy()
-        for script in temp_file_paths:            
+        for script in temp_file_paths:
+            start_time = time.time()
+                     
             QtWidgets.QApplication.processEvents()
             
             if self.progress_dialog.wasCanceled():
@@ -167,7 +171,9 @@ class main_window_tab(QWidget):
             self.thread.join()
             output = self.thread.result
             """
-
+            self.progress_dialog.setLabelText(f"Rendering script {progress+1} of {total_script_count}"+
+                                              f"\nEstimated Time: {self.get_estimated_time(render_times, total_script_count-progress)}")
+            QtWidgets.QApplication.processEvents()  
             output = self.render_nuke_script(script)
 
             if output in self.error_codes.values(): 
@@ -182,8 +188,12 @@ class main_window_tab(QWidget):
                 self.file_paths.remove(script)
                 self.file_list.takeItem(self.file_list.row(render_item[0]))
                 progress += 1
+                render_times.append(time.time()-start_time)
+                #self.progress_dialog.setBottomLabelText(f"Estimated Time: {self.get_estimated_time(render_times)}")
                 self.progress_dialog.setValue(int(progress))
                 QtWidgets.QApplication.processEvents()
+                
+                
 
         del temp_file_paths
         self.progress_dialog.setValue(100)
@@ -203,9 +213,46 @@ class main_window_tab(QWidget):
         print(cmd)
         proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
         stderr = proc.communicate()[1]
-        #return stderr.decode("utf-8")
-        return 0           
+        return stderr.decode("utf-8")      
 
+
+    def get_estimated_time(self, render_times, items_left):     
+        if render_times:
+            total_time_left = items_left * statistics.mean(render_times)
+            print(total_time_left)
+            hours, remainder = divmod(total_time_left, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            #just seconds
+            if hours == 0 and (minutes == 0 or minutes < 1):
+                return f"{seconds:02} seconds"
+            #1 minutes and x seconds
+            elif hours == 0 and (minutes >= 1 and minutes <=2):
+                return f"{minutes:02} minute, {seconds:02} seconds"
+            #y minutes and x seconds
+            elif hours == 0 and minutes >= 2:
+                return f"{minutes:02} minutes, {seconds:02} seconds"
+            #1 hour and x seconds
+            elif (hours >= 1 and hours <=2) and minutes < 1:
+                return f"{hours:02} hour, {seconds:02} seconds"
+            #y hours and x seconds
+            elif hours >= 2 and minutes < 1:
+                return f"{hours:02} hours, {seconds:02} seconds"
+            #1 hour and 1 minute and x seconds
+            elif (hours >= 1 and hours <=2) and (minutes >= 1 and minutes <=2):
+                return f"{hours:02} hour, {minutes:02} minute, {seconds:02} seconds"
+            #1 hour and y minutes and x seconds
+            elif (hours >= 1 and hours <=2) and minutes >= 2:
+                return f"{hours:02} hour, {minutes:02} minutes, {seconds:02} seconds"
+            #y hours and 1 minute and x seconds
+            elif hours >= 2 and (minutes >= 1 and minutes <=2):
+                return f"{hours:02} hours, {minutes:02} minute, {seconds:02} seconds"
+            
+            #y hours and z minutes and x seconds
+            else:
+                return f"{hours:02} hours, {minutes:02} minutes, {seconds:02} seconds"
+            
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
+        return "Estimating...."
 
 
 class preferences_tab(QWidget):
