@@ -1,5 +1,6 @@
 import nuke
 import sys
+import datetime
 
 #not needed as of yet, but imported just in case
 import logging
@@ -17,7 +18,6 @@ EXIT_NO_SCRIPT = 404
 
 
 def find_write_node(write_node_name = "Write1"):
-    
     """
     Find and return the Write node with the given name.
 
@@ -32,13 +32,13 @@ def find_write_node(write_node_name = "Write1"):
     """
 
     try:
-        return nuke.toNode(write_node_name)
+        write_node_temp = nuke.toNode(write_node_name)
+        return write_node_temp
     except AttributeError as e:
         exit(EXIT_NO_WRITE_NODE)
 
 
 def render_script(ns, wn):
-
     """
     Render the given Nuke script using the specified write node.
 
@@ -55,6 +55,7 @@ def render_script(ns, wn):
         nuke.RenderUserAbort: If the render was aborted by the user.
     """
 
+    """
     #these errors are wrong, have to look into proper error types
     error_codes = {
         nuke.ExecuteAborted: EXIT_RENDER_CANCELLED,
@@ -65,7 +66,6 @@ def render_script(ns, wn):
         nuke.RenderUserAbort: EXIT_RENDER_USER_ABORT,
     }
 
-    """
     try:
         nuke.execute(wn, start = ns.firstFrame(), end = ns.lastFrame(), incr = 1)
     except Exception as e:
@@ -81,8 +81,8 @@ def render_script(ns, wn):
     except Exception as e:
         sys.exit(EXIT_RENDER_ERROR)
 
+
 def main(nuke_script = nuke.Root()):
-    
     """
     Find write node and render script with the found write node.
 
@@ -101,6 +101,13 @@ def main(nuke_script = nuke.Root()):
 
 
 if __name__ == "__main__":
+    """
+    sys.stdout = open("V:/NUKE Addons - KEEP/Created Scripts/RenderQ/NukeLog.txt", "w")
+    print("-----------------------------------------")
+    print(f"Testing {nuke.root().name()}: {str(datetime.datetime.now())}" )
+    print("We made it into the if __name__!")
+    print("The argument passed in is: " + sys.argv[1])
+    """
     if len(sys.argv) < 2:
         try:
             root = nuke.Root()

@@ -52,7 +52,8 @@ class main_window_tab(QWidget):
         self.file_paths = []
         self.nuke_exe = self.settings.nuke_exe
         #self.nuke_exe = "C:/Program Files/Nuke13.2v5/Nuke13.2.exe"
-        self.py_render_script = "./RenderScript.py"
+        self.py_render_script = r"./RenderScript.py"
+        self.py_render_script = r"V:\NUKE Addons - KEEP\Created Scripts\RenderQ\RenderScript.py"
         #TODO - has yet to be fully implemented
         self.write_node_name = self.settings.write_node_name
         self.folder_search_start = self.settings.folder_search_start
@@ -135,10 +136,10 @@ class main_window_tab(QWidget):
             104: f"There is no write node with name {self.write_node_name}.",
             200: "Render was cancelled by user through Nuke.",
             201: "Render produced an error",
-            203: "Memory error occured with Nuke.",
-            204: "Progress was aborted.",
-            205: "There was a licensing error for Nuke.",
-            206: "The User aborted the render.",
+            202: "Memory error occured with Nuke.",
+            203: "Progress was aborted.",
+            204: "There was a licensing error for Nuke.",
+            205: "The User aborted the render.",
             206: "Unknown Render error occured.",
             404: None #defined in "get_error_message()"
         }
@@ -151,14 +152,13 @@ class main_window_tab(QWidget):
         self.progress_dialog.setValue(int(progress))
         QtWidgets.QApplication.processEvents()
         
-        
-        for script in self.file_paths:            
+        temp_file_paths = self.file_paths.copy()
+        for script in temp_file_paths:            
             QtWidgets.QApplication.processEvents()
             
             if self.progress_dialog.wasCanceled():
                 self.progress_dialog.close() 
                 QtWidgets.QMessageBox.warning(self, "Warning", "Rendering was cancelled")
-                print("I got into the rendering was cancelled section")
                 return
             
             """
@@ -169,15 +169,13 @@ class main_window_tab(QWidget):
             """
 
             output = self.render_nuke_script(script)
-            print("Output: " + str(output))
 
             if output in self.error_codes.values(): 
                 error_box = QMessageBox()
                 error_box.setIcon(QMessageBox.Critical)
                 error_box.setText(get_error_message(output, script))
                 error_box.exec_()
-                QtWidgets.QApplication.processEvents()
-                print("I got into the error section")          
+                QtWidgets.QApplication.processEvents()        
                 return
             else:
                 render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
@@ -186,26 +184,27 @@ class main_window_tab(QWidget):
                 progress += 1
                 self.progress_dialog.setValue(int(progress))
                 QtWidgets.QApplication.processEvents()
-                print(f"rendered {script}")
 
+        del temp_file_paths
         self.progress_dialog.setValue(100)
         #making double sure
         self.clear_file_list()
         
         self.progress_dialog.close()
-        print("done")
 
 
     def render_nuke_script(self, script_path):
         cmd = [self.settings.nuke_exe,
                 "-ti",
-                self.py_render_script,
-                script_path
+                "-x",
+                script_path,
+                self.py_render_script
                 ]
         print(cmd)
         proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
         stderr = proc.communicate()[1]
-        return stderr.decode("utf-8")           
+        #return stderr.decode("utf-8")
+        return 0           
 
 
 
