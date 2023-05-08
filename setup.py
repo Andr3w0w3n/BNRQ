@@ -1,26 +1,42 @@
 import setuptools
+import sys
+import os
+
+APP = ['RenderQ.py']
+APP_NAME = 'RenderQ'
+DATA_FILES = [('scripts', ['RenderQ/scripts/RenderScript.py'])]
+OPTIONS = {
+    'packages': ['RenderQ'],
+    'include_files': ['RenderQ/scripts/RenderScript.py'],
+    'entry_points': {
+        'console_scripts': [
+            'RenderQ = RenderQ.RenderQ:main'
+        ],
+    },
+}
 
 setuptools.setup(
     name="Nuke Render Queue",
     version="0.1",
     author="Andrew Owen",
-    author_email="your_email@example.com",
-    description="A brief description of your package",
+    author_email="waowen17@gmail.com",
+    description="This is a basic nuke render program.",
     long_description_content_type="text/markdown",
-    url="https://github.com/your_username/your_package_name",
+    url="https://github.com/Andr3w0w3n/BNRQ",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Operating System :: Windows 10/11",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.10.11',
     install_requires=[
         # List your dependencies here
     ],
-    entry_points={
-        'console_scripts': [
-            # List your console scripts here
-        ],
+    options={
+        'pyinstaller': OPTIONS
     },
+    app=APP,
+    data_files=DATA_FILES,
+    setup_requires=['pyinstaller']
 )

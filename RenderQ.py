@@ -222,27 +222,35 @@ class main_window_tab(QWidget):
             print(total_time_left)
             hours, remainder = divmod(total_time_left, 3600)
             minutes, seconds = divmod(remainder, 60)
+            
             #just seconds
-            if hours == 0 and (minutes == 0 or minutes < 1):
+            if hours == 0 and (minutes < 1):
                 return f"{seconds:02} seconds"
+            
             #1 minutes and x seconds
             elif hours == 0 and (minutes >= 1 and minutes <=2):
                 return f"{minutes:02} minute, {seconds:02} seconds"
+            
             #y minutes and x seconds
             elif hours == 0 and minutes >= 2:
                 return f"{minutes:02} minutes, {seconds:02} seconds"
+            
             #1 hour and x seconds
             elif (hours >= 1 and hours <=2) and minutes < 1:
                 return f"{hours:02} hour, {seconds:02} seconds"
+            
             #y hours and x seconds
             elif hours >= 2 and minutes < 1:
                 return f"{hours:02} hours, {seconds:02} seconds"
+           
             #1 hour and 1 minute and x seconds
             elif (hours >= 1 and hours <=2) and (minutes >= 1 and minutes <=2):
                 return f"{hours:02} hour, {minutes:02} minute, {seconds:02} seconds"
+            
             #1 hour and y minutes and x seconds
             elif (hours >= 1 and hours <=2) and minutes >= 2:
                 return f"{hours:02} hour, {minutes:02} minutes, {seconds:02} seconds"
+            
             #y hours and 1 minute and x seconds
             elif hours >= 2 and (minutes >= 1 and minutes <=2):
                 return f"{hours:02} hours, {minutes:02} minute, {seconds:02} seconds"
@@ -251,7 +259,6 @@ class main_window_tab(QWidget):
             else:
                 return f"{hours:02} hours, {minutes:02} minutes, {seconds:02} seconds"
             
-            return f"{hours:02}:{minutes:02}:{seconds:02}"
         return "Estimating...."
 
 
