@@ -16,7 +16,7 @@ OPTIONS = {
 }
 
 setuptools.setup(
-    name="Nuke Render Queue",
+    name="NukeRenderQueue",
     version="0.1",
     author="Andrew Owen",
     author_email="waowen17@gmail.com",
@@ -26,8 +26,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: Windows 10/11",
+        "Operating System :: Windows 10",
     ],
     python_requires='>=3.10.11',
     install_requires=[

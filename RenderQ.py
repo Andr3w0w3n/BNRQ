@@ -48,6 +48,27 @@ class main_window_tab(QWidget):
 
 
     def __init__(self, settings):
+        """
+            Initializes a new instance of the `RenderQueue` class.
+
+            Args:
+                settings (Settings): The `Settings` object containing the settings for the render queue.
+
+            Attributes:
+                settings (Settings): The `Settings` object containing the settings for the render queue.
+                file_paths (List[str]): The list of file paths to render.
+                nuke_exe (str): The path to the Nuke executable.
+                py_render_script (str): The path to the Python render script.
+                write_node_name (str): The name of the write node to render.
+                folder_search_start (str): The path to the folder to start searching for files to render.
+                max_num_threads (int): The maximum number of threads to use for rendering.
+
+                add_script (QPushButton): The "Add" button to add a file path to the render queue.
+                remove_script (QPushButton): The "Remove" button to remove a file path from the render queue.
+                clear_files (QPushButton): The "Clear" button to clear the file path list.
+                render_button (QPushButton): The "Render" button to start the rendering process.
+                file_list (QListWidget): The list widget containing the file paths to render.
+        """
         super().__init__()
         
         self.settings = settings
@@ -59,6 +80,7 @@ class main_window_tab(QWidget):
         self.folder_search_start = self.settings.folder_search_start
         #careful using this value as the max workers, it can cause all the scripts to be rendered at once
         self.max_num_threads = os.cpu_count()
+        #TODO - settings file to minimize boot time
         
         self.add_script = QPushButton("+")
         self.remove_script = QPushButton("-")
@@ -67,20 +89,24 @@ class main_window_tab(QWidget):
         self.render_button = QPushButton("Render")
         self.file_list = QListWidget()
         
+        
         # Layout setup
         add_minus_layout = QHBoxLayout()
         add_minus_layout.addWidget(self.add_script)
         add_minus_layout.addWidget(self.remove_script)
+        
         
         button_layout = QVBoxLayout()
         button_layout.addLayout(add_minus_layout)
         button_layout.addWidget(self.render_button)
         button_layout.addWidget(self.clear_files)
 
+        
         total_button_layout = QHBoxLayout()
         total_button_layout.addWidget(self.file_list)
         total_button_layout.addLayout(button_layout)
         self.setLayout(total_button_layout)
+        
         
         # Connect the buttons
         self.add_script.clicked.connect(self.add_script_to_q)
@@ -90,6 +116,11 @@ class main_window_tab(QWidget):
 
     
     def add_script_to_q(self):
+        """   
+            This method opens a file dialog to allow the user to select a Nuke script file. If a file is selected, its path
+            is added to the list of file paths in the instance variable `self.file_paths`. The method then calls the
+            `update_file_list` method to refresh the file list displayed in the user interface.
+        """
         file_dialog = QFileDialog()
         file_path = file_dialog.getOpenFileName(self, 
                                                 "Select File", 
@@ -101,6 +132,12 @@ class main_window_tab(QWidget):
 
     
     def remove_script_from_q(self):
+        """
+            This method removes the selected file paths from the file path list and the file list view.
+            It first gets the list of selected items from the file list view. Then, it iterates through
+            the selected items and removes their corresponding file paths from the file path list and the
+            file list view. If no items are selected, this method does nothing.
+        """
         selected_items = self.file_list.selectedItems()
         for item in selected_items:
             self.file_paths.remove(item.text())
@@ -108,17 +145,43 @@ class main_window_tab(QWidget):
 
 
     def update_file_list(self):
+        """
+            This method clears the file_list an then adds all the file_paths into the file_list. 
+            Updating all the list to the latest files in the file_path list.
+        """
         self.file_list.clear()
         for file_path in self.file_paths:
             self.file_list.addItem(file_path)
 
 
     def clear_file_list(self):
+        """
+            This method updates file_paths to hold no list objects and then calls for the list
+            to be updated.
+        """
         self.file_paths = []
         self.update_file_list()
 
 
     def run_render(self):
+        """
+            Render the Nuke scripts in the queue.
+
+            If there are no scripts in the queue, a warning message is displayed and
+            the method returns immediately. Otherwise, the scripts are rendered one
+            by one in a loop. The progress is displayed in a modal dialog with a
+            cancel button.
+
+            The estimated time left for the current script and the total queue is
+            displayed in the dialog. The render times for each script are recorded
+            and used to calculate the estimated time.
+
+            If the rendering is cancelled by the user, a warning message is displayed
+            and the method returns immediately. If an error occurs during the rendering
+            of a script, an error message is displayed and the rendering is stopped.
+
+            The error codes are stored in a dictionary with a message for each code.
+        """
         
         if not self.file_paths:
             QtWidgets.QMessageBox.warning(self, "Warning", "There are no files in the queue!")
@@ -150,8 +213,6 @@ class main_window_tab(QWidget):
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.setRange(0,total_script_count)
         self.progress_dialog.setValue(int(progress))
-        #self.progress_dialog.setDetailsVisible(True)
-        #self.progress_dialog.setDetails(f"At least 1 script has to be rendered \nto estimate time left")
         QtWidgets.QApplication.processEvents()
         
         temp_file_paths = self.file_paths.copy()
@@ -222,6 +283,9 @@ class main_window_tab(QWidget):
             print(total_time_left)
             hours, remainder = divmod(total_time_left, 3600)
             minutes, seconds = divmod(remainder, 60)
+            hours = round(hours)
+            minutes = round(minutes)
+            seconds = round(seconds)
             
             #just seconds
             if hours == 0 and (minutes < 1):
