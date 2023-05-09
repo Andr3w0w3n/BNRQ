@@ -347,6 +347,19 @@ class main_window_tab(QWidget):
 
 
 class preferences_tab(QWidget):
+    """
+        The preferences tab for Nuke Render Queue.
+
+        Attributes:
+            settings: An instance of the `settings` class used to store the user's preferences.
+            nuke_exe_edit: A QLineEdit widget used to display and edit the path to the Nuke executable.
+            search_start_edit: A QLineEdit widget used to display and edit the starting folder for the file search.
+            write_node_edit: A QLineEdit widget used to display and edit the name of the write node.
+        
+        Methods:
+            update_nuke_path(): A method that updates the Nuke executable path based on the user's selection.
+            update_file_start_path(): A method that updates the starting folder for the file search based on the user's selection.
+    """
     def __init__(self, settings):
         super().__init__()
 
@@ -393,6 +406,8 @@ class preferences_tab(QWidget):
         self.setLayout(vbox)
     
     def update_nuke_path(self):
+        """A visual way to find and update the nuke executable path
+        """
         folder_dialog = QFileDialog()
         folder_dialog.setFileMode(QFileDialog.ExistingFile)
         folder_dialog.setFilter(QtCore.QDir.Executable)
@@ -405,6 +420,8 @@ class preferences_tab(QWidget):
         self.nuke_exe_edit.setText(self.settings.nuke_exe)
 
     def update_file_start_path(self):
+        """A visual way to find and update the file finder start folder path
+        """
         folder_dialog = QFileDialog()
         folder_dialog.setFileMode(QFileDialog.ExistingFile)
         folder_dialog.setFilter(QtCore.QDir.Executable)
