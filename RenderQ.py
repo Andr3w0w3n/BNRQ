@@ -6,6 +6,7 @@ import threading
 import time
 import pdb
 import statistics
+import re
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
@@ -88,6 +89,7 @@ class main_window_tab(QWidget):
         self.clear_files.setStyleSheet("background-color: red;")
         self.render_button = QPushButton("Render")
         self.file_list = QListWidget()
+        self.write_details = QLabel("")
         
         
         # Layout setup
@@ -100,6 +102,8 @@ class main_window_tab(QWidget):
         button_layout.addLayout(add_minus_layout)
         button_layout.addWidget(self.render_button)
         button_layout.addWidget(self.clear_files)
+        button_layout.addWidget(self.write_details)
+        button_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
 
         
         total_button_layout = QHBoxLayout()
@@ -108,11 +112,12 @@ class main_window_tab(QWidget):
         self.setLayout(total_button_layout)
         
         
-        # Connect the buttons
+        # Connect the buttons/actions
         self.add_script.clicked.connect(self.add_script_to_q)
         self.remove_script.clicked.connect(self.remove_script_from_q)
         self.clear_files.clicked.connect(self.clear_file_list)
         self.render_button.clicked.connect(self.run_render)
+        self.file_list.itemSelectionChanged.connect(self.get_write_info)
 
     
     def add_script_to_q(self):
@@ -127,8 +132,19 @@ class main_window_tab(QWidget):
                                                 self.settings.folder_search_start, 
                                                 "Nuke Scripts (*.nk) ;; All Files(*)")[0]
         if file_path:
-            self.file_paths.append(file_path)
-            self.update_file_list()
+            if file_path in self.file_paths:
+                self.confirmation_box = QMessageBox.question(self, 'Warning', 'This file is already in the list. \
+                                                             \nDo you still wish to add it?',
+                                                             QMessageBox.Yes | QMessageBox.No,
+                                                             QMessageBox.No)
+
+                if self.confirmation_box == QMessageBox.Yes:
+                    self.file_paths.append(file_path)
+                    self.update_file_list()
+            else:
+                self.file_paths.append(file_path)
+                self.update_file_list()
+            
 
     
     def remove_script_from_q(self):
@@ -346,6 +362,47 @@ class main_window_tab(QWidget):
         return "Estimating...."
 
 
+    def get_write_info(self):
+        if not self.file_list.selectedItems():
+            self.write_details.setText("")
+        else:
+            selected_item = self.file_list.selectedItems()[0]
+            selected_script = (open(selected_item.text(), 'r')).read()
+            write_node_pattern = r'Write\s*{\s*((?:.*\n)*?)\s*}'
+            write_nodes = re.findall(write_node_pattern, selected_script)
+
+
+            #output_name_pattern = r'file\s+"(.+)"'
+            #file_type_pattern = r'file_type\s+(.+)'
+
+            output_name_pattern = r'file\s+"(.+\..+?)"'
+            file_type_pattern = r'file_type\s+(\w+)'
+
+
+            position = 0
+            for wn in write_nodes:
+                if re.search(self.write_node_name, wn) is not None:
+                    break
+                
+                position += 1
+
+
+            output_name = re.search(output_name_pattern, write_nodes[position]).group(1)
+            file_type = re.search(file_type_pattern, write_nodes[position]).group(1)
+
+
+            self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}\n<b>File Type:</b> {file_type}")
+            
+            """
+            if output_name and file_type:
+                return [output_name, file_type]
+
+            return None
+            """
+
+
+        
+
 class preferences_tab(QWidget):
     """
         The preferences tab for Nuke Render Queue.
@@ -509,7 +566,9 @@ class MainWindow(QMainWindow):
         self.settings.load_settings()
         
         #Window set
-        self.resize(1000, 600)
+        self.resize(900, 450)
+        self.setMaximumSize(1920, 1080)
+        self.setMinimumSize(100, 50)
         #self.setWindowIcon(QIcon("ICON PATH GOES HERE"))
         self.setWindowTitle("Nuke Render Queue")
         self.setContentsMargins(20, 20, 10, 10)
