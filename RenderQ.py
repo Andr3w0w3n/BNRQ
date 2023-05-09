@@ -294,7 +294,9 @@ class main_window_tab(QWidget):
             items_left (): _description_
 
         Returns:
-            _type_: _description_
+            str: the method either returns that it is estimating how much time is left
+                for the rendering to be complete or returns the estimated time till 
+                completion
         """
         if render_times:
             total_time_left = items_left * statistics.mean(render_times)
@@ -471,8 +473,15 @@ class settings(QtCore.QSettings):
 
 class MainWindow(QMainWindow):
     """
-    This creates the primary window for the render queue
+        This creates the primary window for the render queue
     
+        Attributes:
+            settings (Settings): An instance of the `Settings` class that loads and stores application settings.
+
+        Methods:
+            __init__(): Initializes a `MainWindow` instance by setting window size, title, and layout. Also creates a
+                    QTabWidget with two tabs, one for the main render queue window and one for the preferences window.
+            closeEvent(event): Saves the application settings when the user closes the main window.
     """
 
     def __init__(self):
@@ -502,29 +511,20 @@ class MainWindow(QMainWindow):
         
 
 
-    """
-    def find_nuke_exe_path(self):
-        base_dir = 'C:/Program Files/'
-        pattern = 'Nuke'
-        all_dirs = [d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d)) and pattern in d]
-        sorted_dirs = sorted(all_dirs, reverse=True)
-        
-        if sorted_dirs:
-            highest_version_folder = sorted_dirs[0]
-            for filename in os.listdir(os.path.join(base_dir, highest_version_folder)):
-                if filename.startswith("Nuke") and filename.endswith(".exe"):
-                    return os.path.join(os.path.join(base_dir, highest_version_folder), filename)
-        else:
-            return None
-    """
-
-
     def closeEvent(self, event):
+        """This method saves the settings and then ends whatever event is passed into it
+
+        Args:
+            event: The event passed into the method
+        """
         self.settings.save_settings()
         super().closeEvent(event)
 
 
 if __name__ == "__main__":
+    """Program start. This creates an insance of the MainWindow and shows
+        it to the user. 
+    """
     app = QApplication(sys.argv)
     main_window = MainWindow()
     #pdb.run('main_window.show()', globals(), locals())
