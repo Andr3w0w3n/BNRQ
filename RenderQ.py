@@ -265,6 +265,15 @@ class main_window_tab(QWidget):
 
 
     def render_nuke_script(self, script_path):
+        """This method calls for nuke to render the project passed into it. It will render it by running the render script in 
+            the instance of nuke
+
+        Args:
+            script_path (str): This is the path where the script will
+
+        Returns:
+            str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
+        """
         cmd = [self.settings.nuke_exe,
                 "-ti",
                 "-x",
@@ -277,7 +286,16 @@ class main_window_tab(QWidget):
         return stderr.decode("utf-8")      
 
 
-    def get_estimated_time(self, render_times, items_left):     
+    def get_estimated_time(self, render_times, items_left):
+        """This 
+
+        Args:
+            render_times (List[]): _description_
+            items_left (): _description_
+
+        Returns:
+            _type_: _description_
+        """
         if render_times:
             total_time_left = items_left * statistics.mean(render_times)
             print(total_time_left)
