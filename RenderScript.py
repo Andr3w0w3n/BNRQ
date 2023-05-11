@@ -16,6 +16,10 @@ EXIT_RENDER_USER_ABORT = 205
 EXIT_UNKNOWN_RENDER_ERROR = 206
 EXIT_NO_SCRIPT = 404
 
+sys.stdout = sys.__stdout__
+
+#I DON'T UNDERSTAND WHY NUKE REFUSES TO CATCH ERRORS
+#It just seems to exit
 
 def find_write_node(write_node_name = "Write1"):
     """
@@ -33,8 +37,10 @@ def find_write_node(write_node_name = "Write1"):
 
     try:
         write_node_temp = nuke.toNode(write_node_name)
+        if write_node_temp is None:
+            raise ValueError()
         return write_node_temp
-    except AttributeError as e:
+    except ValueError as e:
         exit(EXIT_NO_WRITE_NODE)
 
 
@@ -75,10 +81,9 @@ def render_script(ns, wn):
             print("An unknown render error occurred.")
             sys.exit(206)
     """
-
     try:
         nuke.execute(wn, start = ns.firstFrame(), end = ns.lastFrame(), incr = 1)
-    except Exception as e:
+    except BaseException as e:
         sys.exit(EXIT_RENDER_ERROR)
 
 
@@ -89,7 +94,7 @@ def main(nuke_script = nuke.Root()):
     Args:
         nuke_script (nuke.Script): the Nuke script to render
     """
-
+    print("Are we even going into this script?")
     #setting the logging [not being used]
     #logging.basicConfig(level = logging.ERROR)
 

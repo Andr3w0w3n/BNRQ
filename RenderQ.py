@@ -90,6 +90,7 @@ class main_window_tab(QWidget):
         self.render_button = QPushButton("Render")
         self.file_list = QListWidget()
         self.write_details = QLabel("")
+        self.write_details.setWordWrap(True)
         
         
         # Layout setup
@@ -103,7 +104,7 @@ class main_window_tab(QWidget):
         button_layout.addWidget(self.render_button)
         button_layout.addWidget(self.clear_files)
         button_layout.addWidget(self.write_details)
-        button_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
+        #button_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
 
         
         total_button_layout = QHBoxLayout()
@@ -118,6 +119,25 @@ class main_window_tab(QWidget):
         self.clear_files.clicked.connect(self.clear_file_list)
         self.render_button.clicked.connect(self.run_render)
         self.file_list.itemSelectionChanged.connect(self.get_write_info)
+
+        #create the error codes so that they do not need to be created again
+        self.error_codes = {
+            103: "There are no write nodes in this script",
+            104: f"There is no write node with name {self.write_node_name}.",
+            200: "Render was cancelled by user through Nuke.",
+            201: "Render produced an error",
+            202: "Memory error occured with Nuke.",
+            203: "Progress was aborted.",
+            204: "There was a licensing error for Nuke.",
+            205: "The User aborted the render.",
+            206: "Unknown Render error occured.",
+            
+            404: None #defined in "get_error_message()"
+        }
+
+        self.nuke_error_messages = {
+            103: "no active Write operators"
+        }
 
     
     def add_script_to_q(self):
@@ -208,18 +228,7 @@ class main_window_tab(QWidget):
             if output == 404:
                 return f"There was no script found named {script}."
             return self.error_codes.get(output)
-    
-        self.error_codes = {
-            104: f"There is no write node with name {self.write_node_name}.",
-            200: "Render was cancelled by user through Nuke.",
-            201: "Render produced an error",
-            202: "Memory error occured with Nuke.",
-            203: "Progress was aborted.",
-            204: "There was a licensing error for Nuke.",
-            205: "The User aborted the render.",
-            206: "Unknown Render error occured.",
-            404: None #defined in "get_error_message()"
-        }
+        
 
         progress = 0
         render_times = []
@@ -292,6 +301,7 @@ class main_window_tab(QWidget):
         """
         cmd = [self.settings.nuke_exe,
                 "-ti",
+                "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
                 "-x",
                 script_path,
                 self.py_render_script
@@ -299,7 +309,11 @@ class main_window_tab(QWidget):
         print(cmd)
         proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
         stderr = proc.communicate()[1]
-        return stderr.decode("utf-8")      
+        output = str(stderr.decode("utf-8"))
+        print(output)
+        if output in self.nuke_error_messages:
+            return self.nuke_error_messages[output]
+        return output      
 
 
     def get_estimated_time(self, render_times, items_left):
@@ -370,28 +384,84 @@ class main_window_tab(QWidget):
             selected_script = (open(selected_item.text(), 'r')).read()
             write_node_pattern = r'Write\s*{\s*((?:.*\n)*?)\s*}'
             write_nodes = re.findall(write_node_pattern, selected_script)
-
+            write_line = selected_script.splitlines()[1]
 
             #output_name_pattern = r'file\s+"(.+)"'
             #file_type_pattern = r'file_type\s+(.+)'
+            extra_info = ("")
+            if re.search("#write_info", write_line) is not None:
+                format_pattern = r'format:\s*"\d+\s\d+\s\d+"'
+                channel_pattern = r'chans:"(.+?)"'
+                colorspace_pattern = r'colorspace:"(.+?)"'
+
+                format = re.search(format_pattern, write_line)
+                channel = re.search(channel_pattern, write_line)
+                colorspace = re.search(colorspace_pattern, write_line)
+
+                if format:
+                    format = re.search(r'"(.+?)"', format.group(0)).group(1)
+                else:
+                    format = "N/A"
+
+                if channel:
+                    channel_temp = re.search(r'(?<!"):([^"]+?:)+[^"]+', channel.group(0))
+                    if channel_temp is not None:
+                        channel = channel_temp.group(0)
+                    else:
+                        channel = "N/A"
+                    
+                else:
+                    channel = "N/A"
+
+                if colorspace:
+                    colorspace_temp = re.search(r'"(.+?)"', colorspace.group(0))
+                    if colorspace_temp is not None:
+                        colorspace = colorspace_temp.group(0)
+                    else:
+                        colorspace = "N/A"
+                else:
+                    colorspace = "N/A"
+                
+                extra_info = (f"<br><b>Format:</b> {format}"+
+                            f"<br><b>Channels:</b> {channel}"+
+                            f"<br><b>Colorspace:</b> {colorspace}")
+            else:
+                self.write_details.setText("<br><i><b>NO WRITE NODE EXISTS IN THIS PROJECT</b><i>")
+                return
 
             output_name_pattern = r'file\s+"(.+\..+?)"'
             file_type_pattern = r'file_type\s+(\w+)'
-
+            colorspace_type1_pattern = r'colorspace (.+)'
+            colorspace_type2_pattern = r'out_colorspace (.+)'
 
             position = 0
+            found = False
             for wn in write_nodes:
                 if re.search(self.write_node_name, wn) is not None:
+                    found
                     break
-                
-                position += 1
+                else:
+                    position += 1
 
-
+            if not found:
+                self.write_details.setText(f"<b>NO WRITE NODE BY {self.settings.write_node_name} IN THIS PROJECT!</b>")
+                return
             output_name = re.search(output_name_pattern, write_nodes[position]).group(1)
             file_type = re.search(file_type_pattern, write_nodes[position]).group(1)
-
-
-            self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}\n<b>File Type:</b> {file_type}")
+            colorspace_t1 = re.search(colorspace_type1_pattern, write_nodes[position])
+            colorspace_t2 = re.search(colorspace_type2_pattern, write_nodes[position])
+            if colorspace_t1 is not None and extra_info == "":
+                self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}<br>"+
+                                       f"<b>File Type:</b> {file_type}<br>"+
+                                       f"<b>Colorspace:</b> {colorspace_t1.group(1)}")
+            elif colorspace_t2 is not None and extra_info == "":
+                self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}<br>"+
+                                       f"<b>File Type:</b> {file_type}<br>"+
+                                       f"<b>Colorspace:</b> {colorspace_t2.group(1)}")
+            else:
+                self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}<br>"+
+                                       f"<b>File Type:</b> {file_type}"+
+                                       extra_info)
             
             """
             if output_name and file_type:
