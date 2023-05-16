@@ -429,15 +429,12 @@ class main_window_tab(QWidget):
                 self.write_details.setText("<br><i><b>NO WRITE NODE EXISTS IN THIS PROJECT</b><i>")
                 return
 
-            output_name_pattern = r'file\s+"(.+\..+?)"'
-            file_type_pattern = r'file_type\s+(\w+)'
-            colorspace_type1_pattern = r'colorspace (.+)'
-            colorspace_type2_pattern = r'out_colorspace (.+)'
-
             position = 0
             found = False
+            print(self.write_node_name)
             for wn in write_nodes:
-                if re.search(self.write_node_name, wn) is not None:
+                print(re.search(self.write_node_name, wn))
+                if re.search(self.write_node_name, wn, re.IGNORECASE) is not None:
                     found
                     break
                 else:
@@ -446,6 +443,12 @@ class main_window_tab(QWidget):
             if not found:
                 self.write_details.setText(f"<b>NO WRITE NODE BY {self.settings.write_node_name} IN THIS PROJECT!</b>")
                 return
+            
+            output_name_pattern = r'file\s+"(.+\..+?)"'
+            file_type_pattern = r'file_type\s+(\w+)'
+            colorspace_type1_pattern = r'colorspace (.+)'
+            colorspace_type2_pattern = r'out_colorspace (.+)'
+            
             output_name = re.search(output_name_pattern, write_nodes[position]).group(1)
             file_type = re.search(file_type_pattern, write_nodes[position]).group(1)
             colorspace_t1 = re.search(colorspace_type1_pattern, write_nodes[position])
