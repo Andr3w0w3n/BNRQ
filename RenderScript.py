@@ -21,7 +21,7 @@ sys.stdout = sys.__stdout__
 #I DON'T UNDERSTAND WHY NUKE REFUSES TO CATCH ERRORS
 #It just seems to exit
 
-def find_write_node(write_node_name = "Write1"):
+def find_write_node(write_node_name):
     """
     Find and return the Write node with the given name.
 
@@ -44,7 +44,7 @@ def find_write_node(write_node_name = "Write1"):
         exit(EXIT_NO_WRITE_NODE)
 
 
-def render_script(ns, wn):
+def render_script(wn):
     """
     Render the given Nuke script using the specified write node.
 
@@ -82,25 +82,24 @@ def render_script(ns, wn):
             sys.exit(206)
     """
     try:
-        nuke.execute(wn, start = ns.firstFrame(), end = ns.lastFrame(), incr = 1)
+        nuke.execute(wn, start = nuke.root().firstFrame(), end = nuke.root().lastFrame())
     except BaseException as e:
         sys.exit(EXIT_RENDER_ERROR)
 
 
-def main(nuke_script = nuke.Root()):
+def main(nuke_script = nuke.Root(), write_node_name = "Write1"):
     """
     Find write node and render script with the found write node.
 
     Args:
         nuke_script (nuke.Script): the Nuke script to render
     """
-    print("Are we even going into this script?")
     #setting the logging [not being used]
     #logging.basicConfig(level = logging.ERROR)
-
-    write_node = find_write_node()
+    nuke.scriptOpen(nuke_script)
+    write_node = find_write_node(write_node_name)
     
-    render_script(nuke_script, write_node)
+    render_script(write_node)
 
     sys.exit(0)
 

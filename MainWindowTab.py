@@ -8,6 +8,8 @@ import pdb
 import statistics
 import re
 
+from CodecLookup import FourCCTranslator as codec_finder
+
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
@@ -43,7 +45,7 @@ class main_window_tab(QWidget):
             update_file_list(): Update the file list widget with the current list of Nuke scripts.
             clear_file_list(): Clear the list of Nuke scripts.
             run_render(): Start the rendering process for the Nuke scripts in the list.
-            render_nuke_script(script_path): Execute the RenderScript.py script with the specified Nuke script as argument, and return the output/error message.
+            render_nuke_script(nuke_script_path): Execute the RenderScript.py script with the specified Nuke script as argument, and return the output/error message.
             get_render_times(render_times): Find the average(mean) time of each render to show the user an estimated finish time
     """
 
@@ -288,31 +290,35 @@ class main_window_tab(QWidget):
         self.progress_dialog.close()
 
 
-    def render_nuke_script(self, script_path):
+    def render_nuke_script(self, nuke_script_path):
         """This method calls for nuke to render the project passed into it. It will render it by running the render script in 
             the instance of nuke
 
         Args:
-            script_path (str): This is the path where the script will
+            nuke_script_path (str): This is the path where the script will
 
         Returns:
             str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
         """
         cmd = [self.settings.nuke_exe,
-                "-ti",
+                '-ti',
                 "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
-                "-x",
-                script_path,
-                self.py_render_script
+                self.py_render_script,
+                nuke_script_path,
+                self.settings.write_node_name
                 ]
         print(cmd)
         proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
-        stderr = proc.communicate()[1]
-        output = str(stderr.decode("utf-8"))
-        print(output)
-        if output in self.nuke_error_messages:
-            return self.nuke_error_messages[output]
-        return output      
+        stdout, stderr = proc.communicate()
+        exit_code = proc.returncode
+        #stderr = proc.communicate()[1]
+        #output = str(stderr.decode("utf-8"))
+        print(f"stdout: {stdout}")
+        print(f"stderr: {stderr}")
+        print(f"Exit code: {exit_code}")
+        if exit_code in self.nuke_error_messages:
+            return self.nuke_error_messages[exit_code]
+        return exit_code      
 
 
     def get_estimated_time(self, render_times, items_left):
@@ -329,7 +335,6 @@ class main_window_tab(QWidget):
         """
         if render_times:
             total_time_left = items_left * statistics.mean(render_times)
-            print(total_time_left)
             hours, remainder = divmod(total_time_left, 3600)
             minutes, seconds = divmod(remainder, 60)
             hours = round(hours)
@@ -471,29 +476,26 @@ class main_window_tab(QWidget):
             #
             #return None
             """
-    
+
+    #could potentially make the output look nicer    
     def get_write_info(self):
-        
         if not self.file_list.selectedItems():
             self.write_details.setText("")
             return
-        
+            
         selected_item = self.file_list.selectedItems()[0]
         selected_script = open(selected_item.text(), 'r').read()
         
         extra_info = ""
-        
-        if "#write_info" in write_line:
-            format_pattern = r'format:\s*"(\d+\s\d+\s\d+)"'
-            channel_pattern = r'chans:"(.+?)"'
-            colorspace_pattern = r'colorspace:"(.+?)"'
+        write_line = selected_script.splitlines()[1]
 
-            format_match = re.search(format_pattern, write_line)
-            channel_match = re.search(channel_pattern, write_line)
-            colorspace_match = re.search(colorspace_pattern, write_line)
+        if "#write_info" in write_line:
+            format_match = re.search(r'format:\s*"(\d+\s\d+\s\d+)"', write_line)
+            channel_match = re.search(r'chans:"(.+?)"', write_line)
+            colorspace_match = re.search(r'colorspace:"(.+?)"', write_line)
 
             format_value = format_match.group(1) if format_match else "N/A"
-            channel_value = channel_match.group(1).replace(":", ",") if channel_match else "N/A"
+            channel_value = channel_match.group(1).strip(":").replace(":", ",") if channel_match else "N/A"
             colorspace_value = colorspace_match.group(1) if colorspace_match else "N/A"
 
             extra_info = f"<br><b>Format:</b> {format_value}" \
@@ -505,7 +507,6 @@ class main_window_tab(QWidget):
 
         write_node_pattern = r'Write\s*{\s*((?:.*\n)*?)\s*}'
         write_nodes = re.findall(write_node_pattern, selected_script)
-        write_line = selected_script.splitlines()[1]
 
         write_node_index = next((i for i, wn in enumerate(write_nodes) if self.write_node_name in wn), None)
 
@@ -513,16 +514,22 @@ class main_window_tab(QWidget):
             self.write_details.setText(f"<b>NO WRITE NODE BY {self.settings.write_node_name} IN THIS PROJECT!</b>")
             return
 
-        output_name_pattern = r'file\s+"(.+\..+?)"'
-        file_type_pattern = r'file_type\s+(\w+)'
-        colorspace_type_pattern = r'(?:colorspace|out_colorspace)\s+(.+)'
-        
         write_node = write_nodes[write_node_index]
-        output_name = re.search(output_name_pattern, write_node).group(1)
-        file_type = re.search(file_type_pattern, write_node).group(1)
-        colorspace_type = re.search(colorspace_type_pattern, write_node).group(1) if re.search(colorspace_type_pattern, write_node) else ""
+        output_name = re.search(r'file\s+"(.+\..+?)"', write_node).group(1)
+        file_type = re.search(r'file_type\s+(\w+)', write_node).group(1)
+        colorspace_type = re.search(r'(?:colorspace|out_colorspace)\s+(.+)', write_node, re.IGNORECASE).group(1) if re.search(r'(?:colorspace|out_colorspace)\s+(.+)', write_node, re.IGNORECASE) else ""
 
-        self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}<br>"
-                                f"<b>File Type:</b> {file_type}"
-                                f"{extra_info}"
-                                f"<br><b>Colorspace:</b> {colorspace_type}")
+        codec = ""
+        words = write_node.split()
+
+        if "mov64_codec" in write_node:
+            index = words.index("mov64_codec")
+            codec_four_cc = words[index+1]
+            codec = "<br><b>Codec:</b> " + codec_finder.get_codec(codec_finder, codec_four_cc)
+
+        colorspace_line = f"<br><b>Colorspace:</b> {colorspace_type}" if colorspace_type else ""
+        self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}"
+                                    f"<br><b>File Type:</b> {file_type}"
+                                    f"{extra_info}"
+                                    f"{colorspace_line}"
+                                    f"{codec}")
