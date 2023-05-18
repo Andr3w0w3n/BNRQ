@@ -14,6 +14,16 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import(QSettings)
 
+"""
+from PySide2 import QtWidgets, QtGui, QtCore
+from PySide2.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
+    QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
+    QMainWindow, QListWidget, QMessageBox, QTabWidget
+)
+from PySide2.QtCore import(QSettings)
+"""
+
 
 class MainWindow(QMainWindow):
     """

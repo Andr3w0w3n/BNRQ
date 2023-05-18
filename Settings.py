@@ -8,6 +8,11 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import(QSettings)
 
+"""
+from PySide2 import QtCore
+from PySide2.QtCore import(QSettings)
+"""
+
 class settings(QtCore.QSettings):
 
     def __init__(self):

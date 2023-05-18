@@ -7,6 +7,13 @@ from PyQt5.QtWidgets import (
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
 from PyQt5.QtCore import(QSettings)
+"""
+from PySide2 import QtWidgets, QtCore
+
+from PySide2.QtWidgets import (
+    QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog
+)
+"""
 
 class preferences_tab(QWidget):
     """
@@ -40,7 +47,7 @@ class preferences_tab(QWidget):
         write_node_label = QLabel("Write Node Name:")
         self.write_node_edit = QLineEdit(self.settings.write_node_name)
         save_button = QPushButton("Save")
-        save_button.clicked.connect(settings.save_settings)
+        save_button.clicked.connect(self.settings.save_settings)
         
 
         # Add the widgets to layouts
