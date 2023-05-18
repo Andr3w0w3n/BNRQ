@@ -1,13 +1,13 @@
 # BNRQ (Basic Nuke Render Queue)
 
 
-## Description:
+## Description
 Basic Nuke Render Queue (BNRQ) is a side coding project developed by Andrew Owen that aims to provide a simple
 render queue for Foundry Nuke. It is run outside of Nuke so there is no need to launch nuke to use the
 application. The code is open for anyone to see for not only clarity purposes but hopefully learning
 purposes as well. 
 
-## Content Description:
+## Content Description
 RenderQueue Builds : *The build folders for each exe build. See installation for information on each of the builds*
 - Build0.1
 - Build0.2
@@ -30,7 +30,7 @@ Settings.py : *This is the class that runs and manages settings for the pyqt app
 
 setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
-## Installation:
+## Installation
 The application is available as an executable located in the Builds folder on the project's github. Clone the github repository
 to have access to the application. Different builds will be stored in different folders so you can choose the build that you
 would like to run. **You can move the executable file to any location you deem fit and the program will still work.**
@@ -39,10 +39,11 @@ This is for anyone that would like to use the spec file to build.
 
 ***Build0.1***: This is a very early version of the render queue. Its rendering capacity is limited and is as bare functional as you 
 	can get.
+
 ***Build0.2***: This is a more functional version of the render queue. The rendering is done by a built in script and is more controllable.
 	There are also more errors caught and more information displayed for the user. 
 	
-## Use:
+## Use
 
 
 ## Licensing references
