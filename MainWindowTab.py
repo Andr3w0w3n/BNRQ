@@ -300,6 +300,9 @@ class main_window_tab(QWidget):
         Returns:
             str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
         """
+        #this line is to make sure the packaged executable is able to keep RenderScript.py for use
+        self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
+        
         cmd = [self.settings.nuke_exe,
                 '-ti',
                 "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
