@@ -25,8 +25,8 @@ RenderQ.py : *This is the class that holds the main function and launches the py
 RenderScript.py : *This is a python script built for the program to run in Nuke. It opens a designated project and renders it.
 		Returning an exit code that the program may use to display errors if any occur.*
 		
-Settigns.py : *This is the class that runs and manages settings for the pyqt application.*
-	***Note****:Settings are not saved in an file, so the application basically only has temporary settings atm*
+Settings.py : *This is the class that runs and manages settings for the pyqt application.*
+	***Note***:*Settings are not saved in an file, so the application basically only has temporary settings atm*
 
 setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
