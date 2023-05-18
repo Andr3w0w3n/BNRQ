@@ -26,7 +26,7 @@ RenderScript.py : *This is a python script built for the program to run in Nuke.
 		Returning an exit code that the program may use to display errors if any occur.*
 		
 Settings.py : *This is the class that runs and manages settings for the pyqt application.*
-	***Note***:*Settings are not saved in an file, so the application basically only has temporary settings atm*
+	***Note***:*Settings are not saved in an file, so the application basically only has temporary settings at the moment*
 
 setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
@@ -42,3 +42,12 @@ This is for anyone that would like to use the spec file to build.
 ***Build0.2***: This is a more functional version of the render queue. The rendering is done by a built in script and is more controllable.
 	There are also more errors caught and more information displayed for the user. 
 	
+## Use:
+
+
+## Licensing references
+### PyQt License
+
+This application uses PyQt, which is licensed under the GNU General Public License (GPL) or a commercial license. 
+Please refer to the [PyQt License](https://riverbankcomputing.com/software/pyqt/license) for more details.
+
