@@ -8,7 +8,7 @@ a = Analysis(
     ['RenderQ.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('./RenderScript.py', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
