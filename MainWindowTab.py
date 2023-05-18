@@ -228,7 +228,7 @@ class main_window_tab(QWidget):
         def get_error_message(output, script):
             if output == 404:
                 return f"There was no script found named {script}."
-            return self.error_codes.get(output)
+            return self.error_codes[output]
         
 
         progress = 0
@@ -248,7 +248,8 @@ class main_window_tab(QWidget):
             QtWidgets.QApplication.processEvents()
             
             if self.progress_dialog.wasCanceled():
-                self.progress_dialog.close() 
+                self.progress_dialog.close()
+                QtWidgets.QApplication.processEvents()
                 QtWidgets.QMessageBox.warning(self, "Warning", "Rendering was cancelled")
                 return
             
@@ -263,12 +264,13 @@ class main_window_tab(QWidget):
             QtWidgets.QApplication.processEvents()  
             output = self.render_nuke_script(script)
 
-            if output in self.error_codes.values(): 
+            if output in self.error_codes:
                 error_box = QMessageBox()
                 error_box.setIcon(QMessageBox.Critical)
                 error_box.setText(get_error_message(output, script))
                 error_box.exec_()
-                QtWidgets.QApplication.processEvents()        
+                self.progress_dialog.close()
+                QtWidgets.QApplication.processEvents()
                 return
             else:
                 render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
@@ -301,8 +303,11 @@ class main_window_tab(QWidget):
             str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
         """
         #this line is to make sure the packaged executable is able to keep RenderScript.py for use
-        self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
-        
+        try:
+            self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
+        except AttributeError:
+            self.py_render_script = "./RenderScript.py"
+
         cmd = [self.settings.nuke_exe,
                 '-ti',
                 "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
@@ -319,9 +324,7 @@ class main_window_tab(QWidget):
         print(f"stdout: {stdout}")
         print(f"stderr: {stderr}")
         print(f"Exit code: {exit_code}")
-        if exit_code in self.nuke_error_messages:
-            return self.nuke_error_messages[exit_code]
-        return exit_code      
+        return exit_code  
 
 
     def get_estimated_time(self, render_times, items_left):

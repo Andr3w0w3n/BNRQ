@@ -18,9 +18,6 @@ EXIT_NO_SCRIPT = 404
 
 sys.stdout = sys.__stdout__
 
-#I DON'T UNDERSTAND WHY NUKE REFUSES TO CATCH ERRORS
-#It just seems to exit
-
 def find_write_node(write_node_name):
     """
     Find and return the Write node with the given name.
@@ -29,10 +26,10 @@ def find_write_node(write_node_name):
         write_node_name (str): The name of the Write node to search for.
 
     Returns:
-        nuke.Node: The Write node with the given name
+        nuke.Node: The node with the given name (At this point, it could not be a write node)
 
     Raises:
-        (AttributeError): If the node with the given name is not a Write node.
+        (ValueError): If the node with the given name is not in the script.
     """
 
     try:
@@ -93,6 +90,8 @@ def main(nuke_script = nuke.Root(), write_node_name = "Write1"):
 
     Args:
         nuke_script (nuke.Script): the Nuke script to render
+        write_node_name (str): the name of the write node that the user selected,
+                defaults to "Write1".
     """
     #setting the logging [not being used]
     #logging.basicConfig(level = logging.ERROR)
@@ -112,11 +111,12 @@ if __name__ == "__main__":
     print("We made it into the if __name__!")
     print("The argument passed in is: " + sys.argv[1])
     """
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         try:
             root = nuke.Root()
             main()
         except NameError:
             sys.exit(EXIT_NO_SCRIPT)
     nuke_script_arg = sys.argv[1]
-    main(nuke_script_arg)
+    write_node_name_arg = sys.argv[2]
+    main(nuke_script_arg, write_node_name_arg)
