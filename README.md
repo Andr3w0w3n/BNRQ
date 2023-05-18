@@ -9,8 +9,8 @@ purposes as well.
 
 ## Content Description:
 RenderQueue Builds : *The build folders for each exe build. See installation for information on each of the builds*
--Build0.1
--Build0.2
+- Build0.1
+- Build0.2
 
 CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation*
 
