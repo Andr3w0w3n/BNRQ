@@ -8,27 +8,27 @@ application. The code is open for anyone to see for not only clarity purposes bu
 purposes as well. 
 
 ## Content Description:
-RenderQueue Builds : *The build folders for each exe build. See installation for information on each of the builds
+RenderQueue Builds : *The build folders for each exe build. See installation for information on each of the builds*
 -Build0.1
 -Build0.2
 
-CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation
+CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation*
 
-LICENSE : *The license for BNRQ
+LICENSE : *The license for BNRQ*
 
-MainWindowTab.py : *This is the class that holds the code for the Main Window Tab. This includes functionality and look
+MainWindowTab.py : *This is the class that holds the code for the Main Window Tab. This includes functionality and look*
 
-PreferencesTab.py : *This is the class that holds the code for the Preferences Tab. This includes functionality and look
+PreferencesTab.py : *This is the class that holds the code for the Preferences Tab. This includes functionality and look*
 
-RenderQ.py : *This is the class that holds the main function and launches the pyqt application
+RenderQ.py : *This is the class that holds the main function and launches the pyqt application*
 
 RenderScript.py : *This is a python script built for the program to run in Nuke. It opens a designated project and renders it.
-		Returning an exit code that the program may use to display errors if any occur.
+		Returning an exit code that the program may use to display errors if any occur.*
 		
-Settigns.py : *This is the class that runs and manages settings for the pyqt application.
-	***Note****:Settings are not saved in an file, so the application basically only has temporary settings atm
+Settigns.py : *This is the class that runs and manages settings for the pyqt application.*
+	***Note****:Settings are not saved in an file, so the application basically only has temporary settings atm*
 
-setup.py : *This is for construction of the executable. It is used to make the .spec file
+setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
 ## Installation:
 The application is available as an executable located in the Builds folder on the project's github. Clone the github repository
