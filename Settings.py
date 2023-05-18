@@ -1,17 +1,7 @@
 import sys
 import os
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
-    QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
-    QMainWindow, QListWidget, QMessageBox, QTabWidget
-)
-from PyQt5.QtCore import(QSettings)
-
-"""
 from PySide2 import QtCore
 from PySide2.QtCore import(QSettings)
-"""
 
 class settings(QtCore.QSettings):
 

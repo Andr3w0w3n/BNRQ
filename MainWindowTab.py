@@ -10,14 +10,6 @@ import re
 
 from CodecLookup import FourCCTranslator as codec_finder
 
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
-    QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
-    QMainWindow, QListWidget, QMessageBox, QTabWidget
-)
-from PyQt5.QtCore import(QSettings)
-"""
 from PySide2 import QtWidgets, QtGui, QtCore
 from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
@@ -25,7 +17,7 @@ from PySide2.QtWidgets import (
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
 from PySide2.QtCore import(QSettings)
-"""
+
 
 class main_window_tab(QWidget):
 
