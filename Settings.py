@@ -1,9 +1,11 @@
 import sys
 import os
-from PySide2 import QtCore
-from PySide2.QtCore import(QSettings)
 
-class settings(QtCore.QSettings):
+from PySide6 import QtCore
+from PySide6.QtCore import(QSettings)
+
+
+class Settings(QtCore.QSettings):
 
     def __init__(self):
         super().__init__()
@@ -47,7 +49,7 @@ class settings(QtCore.QSettings):
         nuke_path = None
         max_ver = -1
 
-        for root, dirs, files in os.walk("C:/Program Files/"):
+        for root, dirs, files in os.walk("C:\\Program Files\\"):
             for file in files:
                 if "Nuke" in file and file.endswith(".exe"):
                     ver = float(file.split("Nuke")[1].split(".exe")[0])

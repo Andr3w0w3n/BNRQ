@@ -2,17 +2,17 @@ import sys
 import os
 import subprocess
 
-from PreferencesTab import preferences_tab
-from Settings import settings
-from MainWindowTab import main_window_tab
+from PreferencesTab import PreferencesTab
+from Settings import Settings
+from MainWindowTab import MainWindowTab
 
-from PySide2 import QtWidgets, QtGui, QtCore
-from PySide2.QtWidgets import (
+from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
-from PySide2.QtCore import(QSettings)
+from PySide6.QtCore import(QSettings)
 
 
 
@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         #load settings
-        self.settings = settings()
+        self.settings = Settings()
         self.settings.load_settings()
         
         #Window set
@@ -47,8 +47,8 @@ class MainWindow(QMainWindow):
         #elements
         central_widget = QWidget()
         tab = QTabWidget()
-        pref_tab = preferences_tab(self.settings)
-        mw_tab = main_window_tab(self.settings)
+        pref_tab = PreferencesTab(self.settings)
+        mw_tab = MainWindowTab(self.settings)
         tab.addTab(mw_tab, "Render Queue")
         tab.addTab(pref_tab, "Preferences")
         main_layout = QVBoxLayout()
@@ -76,4 +76,4 @@ if __name__ == "__main__":
     main_window = MainWindow()
     #pdb.run('main_window.show()', globals(), locals())
     main_window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

@@ -9,17 +9,22 @@ import statistics
 import re
 
 from CodecLookup import FourCCTranslator as codec_finder
+from SeparateThread import SeparateThread
+from ErrorCodes import ErrorCodes
 
-from PySide2 import QtWidgets, QtGui, QtCore
-from PySide2.QtWidgets import (
+from functools import partial
+
+from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6.QtCore import QCoreApplication, QThread, QObject
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
-from PySide2.QtCore import(QSettings)
+from PySide6.QtCore import(QSettings)
 
 
-class main_window_tab(QWidget):
+class MainWindowTab(QWidget):
 
     """
         This class defines the main render page, containing a list of Nuke scripts and a set of buttons to add/remove them, clear the list, and start a render process on the list. 
@@ -77,13 +82,13 @@ class main_window_tab(QWidget):
         
         self.settings = settings
         self.file_paths = []
-        self.nuke_exe = self.settings.nuke_exe
-        self.py_render_script = r"./RenderScript.py"      
-        self.write_node_name = self.settings.write_node_name
-        #TODO - has yet to be fully implemented
-        self.folder_search_start = self.settings.folder_search_start
+        self.py_render_script = r"./RenderScript.py"
         #careful using this value as the max workers, it can cause all the scripts to be rendered at once
         self.max_num_threads = os.cpu_count()
+
+        self.continue_rendering = True
+        
+
         #TODO - settings file to minimize boot time
         
         self.add_script = QPushButton("+")
@@ -123,25 +128,6 @@ class main_window_tab(QWidget):
         self.render_button.clicked.connect(self.run_render)
         self.file_list.itemSelectionChanged.connect(self.get_write_info)
 
-        #create the error codes so that they do not need to be created again
-        self.error_codes = {
-            103: "There are no write nodes in this script",
-            104: f"There is no write node with name {self.write_node_name}.",
-            200: "Render was cancelled by user through Nuke.",
-            201: "Render produced an error",
-            202: "Memory error occured with Nuke.",
-            203: "Progress was aborted.",
-            204: "There was a licensing error for Nuke.",
-            205: "The User aborted the render.",
-            206: "Unknown Render error occured.",
-            
-            404: None #defined in "get_error_message()"
-        }
-
-        self.nuke_error_messages = {
-            103: "no active Write operators"
-        }
-
     
     def add_script_to_q(self):
         """   
@@ -150,10 +136,10 @@ class main_window_tab(QWidget):
             `update_file_list` method to refresh the file list displayed in the user interface.
         """
         file_dialog = QFileDialog()
-        file_path = file_dialog.getOpenFileName(self, 
+        file_path, _ = file_dialog.getOpenFileName(self, 
                                                 "Select File", 
                                                 self.settings.folder_search_start, 
-                                                "Nuke Scripts (*.nk) ;; All Files(*)")[0]
+                                                "Nuke Scripts (*.nk) ;; All Files(*)")
         if file_path:
             if file_path in self.file_paths:
                 self.confirmation_box = QMessageBox.question(self, 'Warning', 'This file is already in the list. \
@@ -203,95 +189,93 @@ class main_window_tab(QWidget):
 
     def run_render(self):
         """
-            Render the Nuke scripts in the queue.
+        Render the Nuke scripts in the queue.
 
-            If there are no scripts in the queue, a warning message is displayed and
-            the method returns immediately. Otherwise, the scripts are rendered one
-            by one in a loop. The progress is displayed in a modal dialog with a
-            cancel button.
+        If there are no scripts in the queue, a warning message is displayed, and
+        the method returns immediately. Otherwise, the scripts are rendered one
+        by one in a separate thread. The progress is displayed in a modal dialog
+        with a cancel button.
 
-            The estimated time left for the current script and the total queue is
-            displayed in the dialog. The render times for each script are recorded
-            and used to calculate the estimated time.
+        The total number of scripts in the queue is calculated, and a progress
+        dialog is created to show the rendering progress. The estimated time
+        remaining for the current script and the total queue is displayed in the
+        dialog. The render times for each script are recorded and used to calculate
+        the estimated time.
 
-            If the rendering is cancelled by the user, a warning message is displayed
-            and the method returns immediately. If an error occurs during the rendering
-            of a script, an error message is displayed and the rendering is stopped.
+        The rendering is performed in a separate thread to keep the UI responsive.
+        The `render_list` method of the `SeparateThread` object is connected to the
+        thread's `started` signal, and it is responsible for rendering the scripts
+        in the queue. The `render_script_update` signal is connected to the
+        `handle_render_update` method to receive updates about the rendering
+        progress. The `render_done` signal is connected to the `handle_render_finish`
+        method to handle the completion of the rendering.
 
-            The error codes are stored in a dictionary with a message for each code.
+        Note: It is assumed that the necessary UI elements such as the `self.file_paths` 
+        and other relevant attributes have been properly initialized before calling 
+        this method.
         """
         
+
         if not self.file_paths:
             QtWidgets.QMessageBox.warning(self, "Warning", "There are no files in the queue!")
             return
         
+        self.work_threads = QThread(self)
+        self.total_script_count = len(self.file_paths)
+        self.render_times = []
+        self.progress = 0
 
-        def get_error_message(output, script):
-            if output == 404:
-                return f"There was no script found named {script}."
-            return self.error_codes[output]
+        self.error_obj = ErrorCodes()
         
-
-        progress = 0
-        render_times = []
-        total_script_count = len(self.file_paths)
         self.progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", "Cancel", 0, len(self.file_paths), self)
         self.progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
         self.progress_dialog.setMinimumDuration(0)
-        self.progress_dialog.setRange(0,total_script_count)
-        self.progress_dialog.setValue(int(progress))
+        self.progress_dialog.setRange(0,self.total_script_count)
+        self.progress_dialog.setValue(int(self.progress))
+        self.progress_dialog.setLabelText(f"Rendering script {self.progress+1} of {self.total_script_count}"+
+                                        f"\nEstimated Time: {self.get_estimated_time(self.render_times, self.total_script_count-self.progress)}")
         QtWidgets.QApplication.processEvents()
         
-        temp_file_paths = self.file_paths.copy()
-        for script in temp_file_paths:
-            start_time = time.time()
-                     
+        self.nuke_render_worker = SeparateThread()
+        self.nuke_render_worker.moveToThread(self.work_threads)
+        self.work_threads.started.connect(partial(self.nuke_render_worker.render_list, self.file_paths))
+        self.nuke_render_worker.render_script_update.connect(self.handle_render_update)
+        self.nuke_render_worker.render_done.connect(self.handle_render_finish)
+        self.nuke_render_worker.quit_render_thread.connect(self.work_threads.quit)
+        self.work_threads.start()
+
+        #work_threads.wait()
+
+
+    def handle_render_update(self, script, exit_code, elapsed_time):
+        if exit_code in self.error_codes:
+            #self.nuke_render_worker.quit_rt()
+            self.work_threads.quit()
+            error_box = QMessageBox()
+            error_box.setIcon(QMessageBox.Critical)
+            error_box.setText(self.error_obj.get_error_message(exit_code, script))
+            error_box.exec()
+            self.progress_dialog.close()
             QtWidgets.QApplication.processEvents()
-            
-            if self.progress_dialog.wasCanceled():
-                self.progress_dialog.close()
-                QtWidgets.QApplication.processEvents()
-                QtWidgets.QMessageBox.warning(self, "Warning", "Rendering was cancelled")
-                return
-            
-            """
-            self.thread = threading.Thread(target=self.render_nuke_script, args=(script,))
-            self.thread.start()
-            self.thread.join()
-            output = self.thread.result
-            """
-            self.progress_dialog.setLabelText(f"Rendering script {progress+1} of {total_script_count}"+
-                                              f"\nEstimated Time: {self.get_estimated_time(render_times, total_script_count-progress)}")
+            self.handle_render_finish()
+        else:
+            render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
+            self.file_paths.remove(script)
+            self.file_list.takeItem(self.file_list.row(render_item[0]))
+            self.progress += 1
+            self.render_times.append(elapsed_time)
+            self.progress_dialog.setBottomLabelText(f"Estimated Time: {self.get_estimated_time(self.render_times)}")
+            self.progress_dialog.setValue(int(self.progress))
+            self.progress_dialog.setLabelText(f"Rendering script {self.progress+1} of {self.total_script_count}"+
+                                        f"\nEstimated Time: {self.get_estimated_time(self.render_times, self.total_script_count-self.progress)}")
             QtWidgets.QApplication.processEvents()  
-            output = self.render_nuke_script(script)
 
-            if output in self.error_codes:
-                error_box = QMessageBox()
-                error_box.setIcon(QMessageBox.Critical)
-                error_box.setText(get_error_message(output, script))
-                error_box.exec_()
-                self.progress_dialog.close()
-                QtWidgets.QApplication.processEvents()
-                return
-            else:
-                render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
-                self.file_paths.remove(script)
-                self.file_list.takeItem(self.file_list.row(render_item[0]))
-                progress += 1
-                render_times.append(time.time()-start_time)
-                #self.progress_dialog.setBottomLabelText(f"Estimated Time: {self.get_estimated_time(render_times)}")
-                self.progress_dialog.setValue(int(progress))
-                QtWidgets.QApplication.processEvents()
-                
-                
 
-        del temp_file_paths
+    def handle_render_finish(self):
+        self.file_paths = self.file_paths[self.progress:]
         self.progress_dialog.setValue(100)
-        #making double sure
-        self.clear_file_list()
-        
         self.progress_dialog.close()
-
+          
 
     def render_nuke_script(self, nuke_script_path):
         """This method calls for nuke to render the project passed into it. It will render it by running the render script in 
@@ -386,103 +370,6 @@ class main_window_tab(QWidget):
             
         return "Estimating...."
 
-    """#old version of the get_write_info
-    def get_write_info(self):
-        if not self.file_list.selectedItems():
-            self.write_details.setText("")
-        else:
-            selected_item = self.file_list.selectedItems()[0]
-            selected_script = (open(selected_item.text(), 'r')).read()
-            
-            write_node_pattern = r'Write\s*{\s*((?:.*\n)*?)\s*}'
-            write_nodes = re.findall(write_node_pattern, selected_script)
-            write_line = selected_script.splitlines()[1]
-
-            #output_name_pattern = r'file\s+"(.+)"'
-            #file_type_pattern = r'file_type\s+(.+)'
-            extra_info = ("")
-            if re.search("#write_info", write_line) is not None:
-                format_pattern = r'format:\s*"\d+\s\d+\s\d+"'
-                channel_pattern = r'chans:"(.+?)"'
-                colorspace_pattern = r'colorspace:"(.+?)"'
-
-                format = re.search(format_pattern, write_line)
-                channel = re.search(channel_pattern, write_line)
-                colorspace = re.search(colorspace_pattern, write_line)
-
-                if format:
-                    format = re.search(r'"(.+?)"', format.group(0)).group(1)
-                else:
-                    format = "N/A"
-
-                if channel:
-                    #channel_temp = re.search(r'chans:":((?:[^:"]*":)*[^"]*)', channel.group(0))
-                    channel_temp = re.search(r'(?<=chans:")[^"]+', channel.group(0))
-                    if channel_temp is not None:
-                        channel = channel_temp.group(0).strip(":").replace(":", ",")
-                    else:
-                        channel = "N/A"
-                    
-                else:
-                    channel = "N/A"
-
-                if colorspace:
-                    colorspace_temp = re.search(r'"(.+?)"', colorspace.group(0))
-                    if colorspace_temp is not None:
-                        colorspace = colorspace_temp.group(0).strip("\"")
-                    else:
-                        colorspace = "N/A"
-                else:
-                    colorspace = "N/A"
-                
-                extra_info = (f"<br><b>Format:</b> {format}"+
-                            f"<br><b>Channels:</b> {channel}"+
-                            f"<br><b>Colorspace:</b> {colorspace}")
-            else:
-                self.write_details.setText("<br><i><b>NO WRITE NODE EXISTS IN THIS PROJECT</b><i>")
-                return
-
-            position = 0
-            found = False
-            for wn in write_nodes:
-                if re.search(self.write_node_name, wn) is not None:
-                    found = True
-                    break
-                else:
-                    position += 1
-
-            if not found:
-                self.write_details.setText(f"<b>NO WRITE NODE BY {self.settings.write_node_name} IN THIS PROJECT!</b>")
-                return
-            
-            output_name_pattern = r'file\s+"(.+\..+?)"'
-            file_type_pattern = r'file_type\s+(\w+)'
-            colorspace_type1_pattern = r'colorspace (.+)'
-            colorspace_type2_pattern = r'out_colorspace (.+)'
-            
-            output_name = re.search(output_name_pattern, write_nodes[position]).group(1)
-            file_type = re.search(file_type_pattern, write_nodes[position]).group(1)
-            colorspace_t1 = re.search(colorspace_type1_pattern, write_nodes[position])
-            colorspace_t2 = re.search(colorspace_type2_pattern, write_nodes[position])
-            if colorspace_t1 is not None and extra_info == "":
-                self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}<br>"+
-                                       f"<b>File Type:</b> {file_type}<br>"+
-                                       f"<b>Colorspace:</b> {colorspace_t1.group(1)}")
-            elif colorspace_t2 is not None and extra_info == "":
-                self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}<br>"+
-                                       f"<b>File Type:</b> {file_type}<br>"+
-                                       f"<b>Colorspace:</b> {colorspace_t2.group(1)}")
-            else:
-                self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}<br>"+
-                                       f"<b>File Type:</b> {file_type}"+
-                                       extra_info)
-            
-            
-            #if output_name and file_type:
-            #    return [output_name, file_type]
-            #
-            #return None
-            """
 
     #could potentially make the output look nicer    
     def get_write_info(self):
@@ -515,10 +402,10 @@ class main_window_tab(QWidget):
         write_node_pattern = r'Write\s*{\s*((?:.*\n)*?)\s*}'
         write_nodes = re.findall(write_node_pattern, selected_script)
 
-        write_node_index = next((i for i, wn in enumerate(write_nodes) if self.write_node_name in wn), None)
+        write_node_index = next((i for i, wn in enumerate(write_nodes) if self.settings.write_node_name in wn), None)
 
         if write_node_index is None:
-            self.write_details.setText(f"<b>NO WRITE NODE BY {self.settings.write_node_name} IN THIS PROJECT!</b>")
+            self.write_details.setText(f"<b>NO WRITE NODE BY {self.settings.write_node_name} EXISTS <i>FILLED OUT</i> IN THIS PROJECT!</b>")
             return
 
         write_node = write_nodes[write_node_index]
