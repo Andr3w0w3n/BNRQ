@@ -48,8 +48,8 @@ This is for anyone that would like to use the spec file to build.
 
 ## Library references
 ### PySide
-This application uses (PySide2)[https://pypi.org/project/PySide2/] with no modifications to it. 
+This application uses [PySide2](https://pypi.org/project/PySide2/) with no modifications to it. 
 
 ### Pyinstaller
-This application was packaged with (pyinstaller)[https://pyinstaller.org/en/stable/installation.html] with no modifications to it. It was also not packaged with the application.
+This application was packaged using [pyinstaller](https://pyinstaller.org/en/stable/installation.html) with no modifications to it. It was also not packaged with the application.
 
