@@ -46,9 +46,10 @@ This is for anyone that would like to use the spec file to build.
 ## Use
 
 
-## Licensing references
-### PyQt License
+## Library references
+### PySide
+This application uses (PySide2)[https://pypi.org/project/PySide2/] with no modifications to it. 
 
-This application uses PyQt, which is licensed under the GNU General Public License (GPL) or a commercial license. 
-Please refer to the [PyQt License](https://riverbankcomputing.com/software/pyqt/license) for more details.
+### Pyinstaller
+This application was packaged with (pyinstaller)[https://pyinstaller.org/en/stable/installation.html] with no modifications to it. It was also not packaged with the application.
 
