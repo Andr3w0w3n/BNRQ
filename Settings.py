@@ -11,7 +11,7 @@ class Settings(QtCore.QSettings):
         super().__init__()
         self.applicationName = "Nuke Render Queue"
         self.nuke_exe = None
-        self.folder_search_start = "C:/"
+        self.folder_search_start = "C:\\"
         self.write_node_name = "Write1"
 
 

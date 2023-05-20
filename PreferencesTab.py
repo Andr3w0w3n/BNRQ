@@ -63,8 +63,10 @@ class PreferencesTab(QWidget):
         self.write_node_edit = QLineEdit(self.settings.write_node_name)
         
         self.save_button = QPushButton("Save")
-        self.save_button.setEnabled(False)
         self.save_button.clicked.connect(self.save_button_clicked)
+        self.cancel_changes_button = QPushButton("Cancel")
+        self.cancel_changes_button.clicked.connect(self.cancel_setting_changes)
+        self.disable_save_buttons()
 
         #if the settings have changed
         self.write_node_edit.textChanged.connect(self.settings_changed)
@@ -87,6 +89,7 @@ class PreferencesTab(QWidget):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         button_layout.addWidget(self.save_button)
+        button_layout.addWidget(self.cancel_changes_button)
 
         # Add the layouts to the preferences tab
         vbox = QVBoxLayout()
@@ -133,15 +136,14 @@ class PreferencesTab(QWidget):
         self.settings.folder_search_start = self.search_start_edit.text()
         self.settings.save_settings
 
-        self.save_button.setEnabled(False)
+        self.disable_save_buttons()
 
 
     def settings_changed(self):
         """Turns on the save button when a setting has been changed.
         """
         if not self.save_button.isEnabled():
-            self.save_button.setEnabled(True)
-
+            self.enable_save_buttons()
 
     def get_nuke_path(self):
         """Sets up a loading icon and then starts the task of finding the Nuke executable in 
@@ -178,3 +180,24 @@ class PreferencesTab(QWidget):
             error_box.exec_()
         self.threads.quit()
         QCoreApplication.processEvents()
+        
+    def cancel_setting_changes(self):
+        self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to discard all your changes?',
+                                                     QMessageBox.Yes | QMessageBox.No,
+                                                     QMessageBox.No)
+        if self.confirmation_box == QMessageBox.Yes:
+            self.search_start_edit.setText(self.settings.folder_search_start)
+            self.nuke_exe_edit.setText(self.settings.nuke_exe)
+            self.write_node_edit.setText(self.settings.write_node_name)
+            self.disable_save_buttons()
+            
+            
+    def enable_save_buttons(self):
+        self.save_button.setEnabled(True)
+        self.cancel_changes_button.setEnabled(True)
+    
+    
+    def disable_save_buttons(self):
+        self.save_button.setEnabled(False)
+        self.cancel_changes_button.setEnabled(False)
+        
