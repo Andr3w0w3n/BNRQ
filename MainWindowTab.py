@@ -276,11 +276,12 @@ class MainWindowTab(QWidget):
           
 
     def get_estimated_time(self, render_times, items_left):
-        """This 
+        """This method gets how much time is estimated for the render to complete. It does this by gathering an
+            average of each render time and then multiplying it by the number of scripts left to render.
 
         Args:
-            render_times (List[]): _description_
-            items_left (): _description_
+            render_times (List[]): The list of times each script took to render
+            items_left (): The count of scripts that have yet to be rendered
 
         Returns:
             str: the method either returns that it is estimating how much time is left

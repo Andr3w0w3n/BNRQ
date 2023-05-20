@@ -110,9 +110,6 @@ class PreferencesTab(QWidget):
         
         if path:
             self.nuke_exe_edit.setText(path)
-
-        #if tempPath:
-        #    self.settings.nuke_exe = tempPath
         
 
     def update_file_start_path(self):
@@ -127,11 +124,10 @@ class PreferencesTab(QWidget):
         if path:
             self.search_start_edit.setText(path)
 
-        #if tempPath:
-        #    self.settings.nuke_exe = tempPath
-
 
     def save_button_clicked(self):
+        """Saves the settings if the save button is clicked and then disables the save button.
+        """
         self.settings.write_node_name = self.write_node_edit.text()
         self.settings.nuke_exe = self.nuke_exe_edit.text()
         self.settings.folder_search_start = self.search_start_edit.text()
@@ -141,11 +137,16 @@ class PreferencesTab(QWidget):
 
 
     def settings_changed(self):
+        """Turns on the save button when a setting has been changed.
+        """
         if not self.save_button.isEnabled():
             self.save_button.setEnabled(True)
 
 
     def get_nuke_path(self):
+        """Sets up a loading icon and then starts the task of finding the Nuke executable in 
+            a separate thread.
+        """
         
         self.loading_gif.start()
         self.loading_label.show()
@@ -158,17 +159,22 @@ class PreferencesTab(QWidget):
         self.nuke_finder_worker.moveToThread(self.threads)
         self.nuke_finder_worker.nuke_path_ready.connect(self.handle_nuke_path_search_result)
         self.nuke_finder_worker.nuke_path_ready.connect(self.loading_label.hide)
-        self.nuke_finder_worker.nuke_path_ready.connect(QCoreApplication.processEvents)
         self.threads.started.connect(self.nuke_finder_worker.get_latest_nuke_path)
         self.threads.start()
 
 
     def handle_nuke_path_search_result(self, nuke_path):
+        """Handles the signal emited once the nuke path is found by the separate thread. Sets text to the nuke path
+
+        Args:
+            nuke_path (str): The nuke path emited by the signal. Either str or None
+        """
         if nuke_path:
             self.nuke_exe_edit.setText(nuke_path)
         else:
             error_box = QMessageBox()
             error_box.setIcon(QMessageBox.Critical)
             error_box.setText("No Nuke path found!")
-            error_box.exec()
+            error_box.exec_()
         self.threads.quit()
+        QCoreApplication.processEvents()
