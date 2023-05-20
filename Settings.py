@@ -46,6 +46,20 @@ class Settings(QtCore.QSettings):
         settings.endGroup()
 
     def get_default_nuke_path(self):
+        """ Find the latest version of Nuke executable installed. This is limited in it only searches the default
+                and common spot of C:/ProgramFiles. It is run as soon as the program is launched. It throws no errors
+                and does not do much in the case Nuke is not found.
+
+        returns:
+            nuke_path_ready (str): Path to the nuke executable or None if there isn't a path to the executable found.
+
+        Steps:
+            - The method searches for Nuke executable (by OS walking) in the "C:\Program Files\" directory and its subdirectories.
+            - It identifies Nuke executables by looking for files with "Nuke" in their name and ending with ".exe".
+            - The method determines the version of each found executable and keeps track of the latest version.
+            - Once the latest Nuke executable path is found, it is emitted via the `nuke_path_ready` signal.
+
+        """
         nuke_path = None
         max_ver = -1
 

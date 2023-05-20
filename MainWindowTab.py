@@ -275,41 +275,6 @@ class MainWindowTab(QWidget):
         self.progress_dialog.close()
           
 
-    def render_nuke_script(self, nuke_script_path):
-        """This method calls for nuke to render the project passed into it. It will render it by running the render script in 
-            the instance of nuke
-
-        Args:
-            nuke_script_path (str): This is the path where the script will
-
-        Returns:
-            str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
-        """
-        #this line is to make sure the packaged executable is able to keep RenderScript.py for use
-        try:
-            self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
-        except AttributeError:
-            self.py_render_script = "./RenderScript.py"
-
-        cmd = [self.settings.nuke_exe,
-                '-ti',
-                "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
-                self.py_render_script,
-                nuke_script_path,
-                self.settings.write_node_name
-                ]
-        print(cmd)
-        proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
-        stdout, stderr = proc.communicate()
-        exit_code = proc.returncode
-        #stderr = proc.communicate()[1]
-        #output = str(stderr.decode("utf-8"))
-        print(f"stdout: {stdout}")
-        print(f"stderr: {stderr}")
-        print(f"Exit code: {exit_code}")
-        return exit_code  
-
-
     def get_estimated_time(self, render_times, items_left):
         """This 
 
