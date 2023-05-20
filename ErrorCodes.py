@@ -33,3 +33,8 @@ class ErrorCodes():
         if output == 404:
             return f"There was no script found named {script}."
         return self.error_codes[output]
+    
+    def check_error_codes(self, code):
+        if code in self.error_codes:
+            return True
+        return False

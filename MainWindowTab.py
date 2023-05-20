@@ -14,14 +14,14 @@ from ErrorCodes import ErrorCodes
 
 from functools import partial
 
-from PySide6 import QtWidgets, QtGui, QtCore
-from PySide6.QtCore import QCoreApplication, QThread, QObject
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtGui, QtCore
+from PySide2.QtCore import QCoreApplication, QThread, QObject
+from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
-from PySide6.QtCore import(QSettings)
+from PySide2.QtCore import(QSettings)
 
 
 class MainWindowTab(QWidget):
@@ -241,14 +241,11 @@ class MainWindowTab(QWidget):
         self.work_threads.started.connect(partial(self.nuke_render_worker.render_list, self.file_paths))
         self.nuke_render_worker.render_script_update.connect(self.handle_render_update)
         self.nuke_render_worker.render_done.connect(self.handle_render_finish)
-        self.nuke_render_worker.quit_render_thread.connect(self.work_threads.quit)
         self.work_threads.start()
-
-        #work_threads.wait()
 
 
     def handle_render_update(self, script, exit_code, elapsed_time):
-        if exit_code in self.error_codes:
+        if self.error_obj.check_error_codes(exit_code):
             #self.nuke_render_worker.quit_rt()
             self.work_threads.quit()
             error_box = QMessageBox()
@@ -264,7 +261,6 @@ class MainWindowTab(QWidget):
             self.file_list.takeItem(self.file_list.row(render_item[0]))
             self.progress += 1
             self.render_times.append(elapsed_time)
-            self.progress_dialog.setBottomLabelText(f"Estimated Time: {self.get_estimated_time(self.render_times)}")
             self.progress_dialog.setValue(int(self.progress))
             self.progress_dialog.setLabelText(f"Rendering script {self.progress+1} of {self.total_script_count}"+
                                         f"\nEstimated Time: {self.get_estimated_time(self.render_times, self.total_script_count-self.progress)}")
@@ -272,8 +268,10 @@ class MainWindowTab(QWidget):
 
 
     def handle_render_finish(self):
-        self.file_paths = self.file_paths[self.progress:]
+        self.work_threads.quit()
         self.progress_dialog.setValue(100)
+        #making double sure
+        self.clear_file_list()
         self.progress_dialog.close()
           
 

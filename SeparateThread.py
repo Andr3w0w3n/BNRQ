@@ -2,26 +2,32 @@ import os
 import sys
 import subprocess
 import time
+from typing import Optional
 
 from Settings import Settings
 from ErrorCodes import ErrorCodes
 
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QThread, Signal, QObject
-from PySide6.QtWidgets import QMessageBox
+from PySide2 import QtWidgets, QtCore
+from PySide2.QtCore import QThread, Signal, QObject
+from PySide2.QtWidgets import QMessageBox
 
 class SeparateThread(QObject):
     
     nuke_path_ready = Signal(str)
-    render_script_update = Signal(str, int, time)
+    render_script_update = Signal(str, int, float)
     render_done = Signal()
     quit_render_thread = Signal()
     quit_nuke_search_thread = Signal()
     
-    settings = Settings()
-    error_obj = ErrorCodes()
-    stop_flag = False
-         
+            
+    def __init__(self):
+        super().__init__()
+        self.settings = Settings()
+        self.settings.load_settings()
+        self.error_obj = ErrorCodes()
+        self.stop_flag = False
+
+
     def get_latest_nuke_path(self):
         nuke_path = None
         max_ver = -1
@@ -39,16 +45,14 @@ class SeparateThread(QObject):
 
     def render_list(self, file_paths):       
 
-        print("In the new thread")
         temp_file_paths = file_paths.copy()
 
         for script in temp_file_paths:
-            print(f"Rendering: {script}")
             if self.stop_flag:
                 return        
-            self.start_time = time.time()
+            start_time = time.time()
             output = self.render_nuke_script(script)
-            self.render_script_update.emit(script, output, time.time())
+            self.render_script_update.emit(script, output, time.time()-start_time)
             time.sleep(1) #this is to give time for the GUI to tell the thread to stop
 
         self.render_done.emit()
@@ -65,11 +69,13 @@ class SeparateThread(QObject):
             str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
         """
         #this line is to make sure the packaged executable is able to keep RenderScript.py for use
+        print(nuke_script_path)
         try:
             self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
         except AttributeError:
             self.py_render_script = "./RenderScript.py"
 
+        print(self.settings.nuke_exe)
         cmd = [self.settings.nuke_exe,
                 '-ti',
                 "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
@@ -83,9 +89,9 @@ class SeparateThread(QObject):
         exit_code = proc.returncode
         #stderr = proc.communicate()[1]
         #output = str(stderr.decode("utf-8"))
-        print(f"stdout: {stdout}")
-        print(f"stderr: {stderr}")
-        print(f"Exit code: {exit_code}")
+        #print(f"stdout: {stdout}")
+        #print(f"stderr: {stderr}")
+        #print(f"Exit code: {exit_code}")
         return exit_code  
 
     #not being used but here if needed

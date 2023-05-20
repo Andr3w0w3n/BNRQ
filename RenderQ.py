@@ -6,13 +6,13 @@ from PreferencesTab import PreferencesTab
 from Settings import Settings
 from MainWindowTab import MainWindowTab
 
-from PySide6 import QtWidgets, QtGui, QtCore
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtGui, QtCore
+from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
-from PySide6.QtCore import(QSettings)
+from PySide2.QtCore import(QSettings)
 
 
 
@@ -76,4 +76,4 @@ if __name__ == "__main__":
     main_window = MainWindow()
     #pdb.run('main_window.show()', globals(), locals())
     main_window.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())

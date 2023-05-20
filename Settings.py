@@ -1,8 +1,8 @@
 import sys
 import os
 
-from PySide6 import QtCore
-from PySide6.QtCore import(QSettings)
+from PySide2 import QtCore
+from PySide2.QtCore import(QSettings)
 
 
 class Settings(QtCore.QSettings):

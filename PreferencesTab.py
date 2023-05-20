@@ -5,10 +5,10 @@ from functools import partial
 
 from SeparateThread import SeparateThread
 
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QThread, QCoreApplication
-from PySide6.QtGui import QMovie
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtCore
+from PySide2.QtCore import QThread, QCoreApplication
+from PySide2.QtGui import QMovie
+from PySide2.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
     QMessageBox, QApplication
 )
@@ -38,9 +38,13 @@ class PreferencesTab(QWidget):
         self.loading_label = QLabel()
         self.loading_gif = QMovie("./Assets/FolderLoading.gif")  # Replace "spinner.gif" with your spinner animation file
         self.loading_label.setMovie(self.loading_gif)
-        #loading_label.setFixedSize(1000, 1000)
-        #loading_label.setStyleSheet("background-color: transparent;")
+        self.loading_label.setFixedSize(250, 250)
+        self.loading_label.setStyleSheet("background-color: transparent;")
+        self.loading_label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.loading_label.setScaledContents(True)
         self.loading_label.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.loading_label.setAlignment(QtCore.Qt.AlignCenter)
+        
 
         # Create the widgets for the preferences tab
         nuke_exe_label = QLabel("Nuke Executable Path:")
@@ -155,11 +159,8 @@ class PreferencesTab(QWidget):
         self.nuke_finder_worker.nuke_path_ready.connect(self.handle_nuke_path_search_result)
         self.nuke_finder_worker.nuke_path_ready.connect(self.loading_label.hide)
         self.nuke_finder_worker.nuke_path_ready.connect(QCoreApplication.processEvents)
-        #self.nuke_finder_worker.quit_nuke_search_thread.connect(threads.quit())
         self.threads.started.connect(self.nuke_finder_worker.get_latest_nuke_path)
         self.threads.start()
-
-        self.threads.wait()
 
 
     def handle_nuke_path_search_result(self, nuke_path):
@@ -170,4 +171,4 @@ class PreferencesTab(QWidget):
             error_box.setIcon(QMessageBox.Critical)
             error_box.setText("No Nuke path found!")
             error_box.exec()
-        threads.quit()
+        self.threads.quit()
