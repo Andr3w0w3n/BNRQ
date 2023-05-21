@@ -41,9 +41,20 @@ class Settings(QtCore.QSettings):
             "search_start": self.folder_search_start,
             "write_name": self.write_node_name
         }
+        print("setting up settings")
+        settings = QtCore.QSettings()
+        settings.beginGroup("Paths")
+        settings.setValue("Nuke executable", self.nuke_exe)
+        settings.setValue("Search start", self.folder_search_start)
+        settings.endGroup()
+
+        settings.beginGroup("Write Node")
+        settings.setValue("write_node_name", self.write_node_name)
+        settings.endGroup()
 
 
     def load_settings(self):
+        print("in load settings")
         settings = QtCore.QSettings()
         settings.beginGroup("Paths")
         nuke_exe_path = settings.value("Nuke executable")
@@ -65,6 +76,7 @@ class Settings(QtCore.QSettings):
 
     
     def save_settings(self):
+        print("in save settings")
         settings = QtCore.QSettings()
         settings.beginGroup("Paths")
         settings.setValue("Nuke executable", self.nuke_exe)
@@ -92,6 +104,8 @@ class Settings(QtCore.QSettings):
             - Once the latest Nuke executable path is found, it is emitted via the `nuke_path_ready` signal.
 
         """
+        print("finding the nuke path for some reason")
+        
         nuke_path = None
         max_ver = -1
 

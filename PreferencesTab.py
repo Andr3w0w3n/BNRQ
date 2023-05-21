@@ -122,7 +122,7 @@ class PreferencesTab(QWidget):
         folder_dialog = QFileDialog()
         folder_dialog.setFileMode(QFileDialog.ExistingFile)
         folder_dialog.setFilter(QtCore.QDir.Executable)
-        path, _ = folder_dialog.getExistingDirectory(self, 
+        path = folder_dialog.getExistingDirectory(self, 
                                              "Select File", 
                                              self.settings.folder_search_start)
         if path:
