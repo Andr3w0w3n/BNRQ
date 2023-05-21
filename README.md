@@ -9,8 +9,6 @@ purposes as well.
 
 ## Content Description
 RenderQueue Builds : *The build folders for each exe build. See installation for information on each of the builds*
-- Build0.1
-- Build0.2
 
 CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation*
 
@@ -37,11 +35,6 @@ would like to run. **You can move the executable file to any location you deem f
 You do not need the .spec file associated with the build for the executable to run. 
 This is for anyone that would like to use the spec file to build.
 
-***Build0.1***: This is a very early version of the render queue. Its rendering capacity is limited and is as bare functional as you 
-	can get.
-
-***Build0.2***: This is a more functional version of the render queue. The rendering is done by a built in script and is more controllable.
-	There are also more errors caught and more information displayed for the user. 
 	
 ## Use
 
