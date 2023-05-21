@@ -99,6 +99,7 @@ class PreferencesTab(QWidget):
         vbox.addLayout(button_layout)
         self.setLayout(vbox)
     
+    
     def update_nuke_path(self):
         """A visual way to find and update the nuke executable path
         """
@@ -145,6 +146,7 @@ class PreferencesTab(QWidget):
         if not self.save_button.isEnabled():
             self.enable_save_buttons()
 
+
     def get_nuke_path(self):
         """Sets up a loading icon and then starts the task of finding the Nuke executable in 
             a separate thread.
@@ -180,6 +182,7 @@ class PreferencesTab(QWidget):
             error_box.exec_()
         self.threads.quit()
         QCoreApplication.processEvents()
+       
         
     def cancel_setting_changes(self):
         self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to discard all your changes?',

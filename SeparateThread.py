@@ -110,7 +110,6 @@ class SeparateThread(QObject):
             str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
         """
         #this line is to make sure the packaged executable is able to keep RenderScript.py for use
-        print(nuke_script_path)
         try:
             self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
         except AttributeError:
@@ -130,9 +129,6 @@ class SeparateThread(QObject):
         exit_code = proc.returncode
         #stderr = proc.communicate()[1]
         #output = str(stderr.decode("utf-8"))
-        #print(f"stdout: {stdout}")
-        #print(f"stderr: {stderr}")
-        #print(f"Exit code: {exit_code}")
         return exit_code  
 
     def stop(self):

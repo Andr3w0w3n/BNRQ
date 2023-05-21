@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 
 from PySide2 import QtCore
 from PySide2.QtCore import(QSettings)
@@ -9,10 +10,37 @@ class Settings(QtCore.QSettings):
 
     def __init__(self):
         super().__init__()
+        
         self.applicationName = "Nuke Render Queue"
         self.nuke_exe = None
         self.folder_search_start = "C:\\"
         self.write_node_name = "Write1"
+        
+        self.settings_filepath = r"./settings.json"
+        
+        try:
+            base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+            json_filepath = os.path.join(base_path, "settings.json")
+            if os.path.exists(json_filepath):
+                with open(self.settings_filepath, "r") as settings_file:
+                    json_settings = json.load(settings_file)
+                    self.nuke_exe = json_settings["exe"]
+                    self.folder_search_start = json_settings["search_start"]
+                    self.write_node_name = json_settings["write_name"]
+        
+        except AttributeError:        
+            if os.path.exists(self.settings_filepath):
+                with open(self.settings_filepath, "r") as settings_file:
+                    json_settings = json.load(settings_file)
+                    self.nuke_exe = json_settings["exe"]
+                    self.folder_search_start = json_settings["search_start"]
+                    self.write_node_name = json_settings["write_name"]
+                
+        self.settings_dict = {
+            "exe": self.nuke_exe,
+            "search_start": self.folder_search_start,
+            "write_name": self.write_node_name
+        }
 
 
     def load_settings(self):
@@ -32,6 +60,8 @@ class Settings(QtCore.QSettings):
         settings.beginGroup("Write Node")
         self.write_node_name = settings.value("write_node_name", self.write_node_name)
         settings.endGroup()
+        
+        self.update_settings_file()
 
     
     def save_settings(self):
@@ -44,6 +74,8 @@ class Settings(QtCore.QSettings):
         settings.beginGroup("Write Node")
         settings.setValue("write_node_name", self.write_node_name)
         settings.endGroup()
+        
+        self.update_settings_file()
 
     def get_default_nuke_path(self):
         """ Find the latest version of Nuke executable installed. This is limited in it only searches the default
@@ -72,3 +104,12 @@ class Settings(QtCore.QSettings):
                         nuke_path = os.path.join(root, file)
 
         return nuke_path
+    
+    
+    def update_settings_file(self):
+        self.settings_dict["exe"] = self.nuke_exe
+        self.settings_dict["search_start"] = self.folder_search_start
+        self.settings_dict["write_name"] = self.write_node_name
+
+        with open(self.settings_filepath, "w") as settings_file:
+            json.dump(self.settings_dict, settings_file)
