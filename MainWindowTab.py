@@ -14,14 +14,14 @@ from ErrorCodes import ErrorCodes
 
 from functools import partial
 
-from PySide2 import QtWidgets, QtGui, QtCore
-from PySide2.QtCore import QCoreApplication, QThread, QObject
-from PySide2.QtWidgets import (
+from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6.QtCore import QCoreApplication, QThread, QObject
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
-from PySide2.QtCore import(QSettings)
+from PySide6.QtCore import(QSettings)
 
 
 class MainWindowTab(QWidget):

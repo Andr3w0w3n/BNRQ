@@ -5,10 +5,10 @@ from functools import partial
 
 from SeparateThread import SeparateThread
 
-from PySide2 import QtWidgets, QtCore
-from PySide2.QtCore import QThread, QCoreApplication
-from PySide2.QtGui import QMovie
-from PySide2.QtWidgets import (
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtCore import QThread, QCoreApplication
+from PySide6.QtGui import QMovie
+from PySide6.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
     QMessageBox, QApplication
 )
