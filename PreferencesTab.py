@@ -5,10 +5,10 @@ from functools import partial
 
 from SeparateThread import SeparateThread
 
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QThread, QCoreApplication
-from PySide6.QtGui import QMovie
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtCore
+from PySide2.QtCore import QThread, QCoreApplication
+from PySide2.QtGui import QMovie
+from PySide2.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
     QMessageBox, QApplication
 )
@@ -36,7 +36,7 @@ class PreferencesTab(QWidget):
 
         #loading GIF
         self.loading_label = QLabel()
-        self.loading_gif = QMovie("./Assets/FolderLoading.gif")  # Replace "spinner.gif" with your spinner animation file
+        self.loading_gif = QMovie("./Assets/FolderLoading.gif")
         self.loading_label.setMovie(self.loading_gif)
         self.loading_label.setFixedSize(250, 250)
         self.loading_label.setStyleSheet("background-color: transparent;")
