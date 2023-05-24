@@ -18,12 +18,12 @@ MainWindowTab.py : *This is the class that holds the code for the Main Window Ta
 
 PreferencesTab.py : *This is the class that holds the code for the Preferences Tab. This includes functionality and look*
 
-RenderQ.py : *This is the class that holds the main function and launches the pyqt application*
+RenderQ.py : *This is the class that holds the main function and launches the pyside application*
 
 RenderScript.py : *This is a python script built for the program to run in Nuke. It opens a designated project and renders it.
 		Returning an exit code that the program may use to display errors if any occur.*
 		
-Settings.py : *This is the class that runs and manages settings for the pyqt application.*
+Settings.py : *This is the class that runs and manages settings for the pyside application.*
 	***Note***:*Settings are not saved in an file, so the application basically only has temporary settings at the moment*
 
 setup.py : *This is for construction of the executable. It is used to make the .spec file*
