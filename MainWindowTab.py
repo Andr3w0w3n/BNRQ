@@ -14,14 +14,14 @@ from ErrorCodes import ErrorCodes
 
 from functools import partial
 
-from PySide6 import QtWidgets, QtGui, QtCore
-from PySide6.QtCore import QCoreApplication, QThread, QObject
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtGui, QtCore
+from PySide2.QtCore import QCoreApplication, QThread, QObject
+from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
-from PySide6.QtCore import(QSettings)
+from PySide2.QtCore import(QSettings)
 
 
 class MainWindowTab(QWidget):
@@ -139,7 +139,7 @@ class MainWindowTab(QWidget):
         file_path, _ = file_dialog.getOpenFileName(self, 
                                                 "Select File", 
                                                 self.settings.folder_search_start, 
-                                                "Nuke Scripts (*.nk) ;; All Files(*)")
+                                                "Nuke Scripts (*.nk)")
         if file_path:
             if file_path in self.file_paths:
                 self.confirmation_box = QMessageBox.question(self, 'Warning', 'This file is already in the list. \

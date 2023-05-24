@@ -6,17 +6,18 @@ from PreferencesTab import PreferencesTab
 from Settings import Settings
 from MainWindowTab import MainWindowTab
 
-from PySide6 import QtWidgets, QtGui, QtCore
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtGui, QtCore
+from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
-    QMainWindow, QListWidget, QMessageBox, QTabWidget
+    QMainWindow, QListWidget, QMessageBox, QTabWidget, QToolBar,
+    QDialog
 )
-from PySide6.QtCore import(QSettings)
+from PySide2.QtCore import(QSettings, Qt, QUrl)
 
 
 
-class MainWindow(QMainWindow):
+class Application(QMainWindow):
     """
         This creates the primary window for the render queue
     
@@ -30,10 +31,10 @@ class MainWindow(QMainWindow):
     """
 
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super(Application, self).__init__()
 
         #load settings
-        self.settings = Settings()
+        self.settings = Settings(False)
         self.settings.load_settings()
         
         #Window set
@@ -46,34 +47,68 @@ class MainWindow(QMainWindow):
         
         #elements
         central_widget = QWidget()
-        tab = QTabWidget()
-        pref_tab = PreferencesTab(self.settings)
+        tabs = QTabWidget()
+        #pref_tab = PreferencesTab(self.settings)
         mw_tab = MainWindowTab(self.settings)
-        tab.addTab(mw_tab, "Render Queue")
-        tab.addTab(pref_tab, "Preferences")
+        tabs.addTab(mw_tab, "Render Queue")
+        #tabs.addTab(pref_tab, "Preferences")
         main_layout = QVBoxLayout()
-        main_layout.addWidget(tab)
+        main_layout.addWidget(tabs)
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
         
+        help_button = QPushButton("Help", self)
+        help_button.clicked.connect(self.open_readme)
+        preferences_button = QPushButton("Preferences", self)
+        preferences_button.clicked.connect(self.open_pref_dialog)
+        
+        toolbar = QToolBar(self)
+        toolbar.addWidget(preferences_button)
+        toolbar.addWidget(help_button)
+        toolbar.setMovable(False)
+        self.addToolBar(Qt.TopToolBarArea, toolbar)
+        
 
 
-    def closeEvent(self, event):
+    def close_event(self, event):
         """This method saves the settings and then ends whatever event is passed into it
 
         Args:
             event: The event passed into the method
         """
         self.settings.save_settings()
-        super().closeEvent(event)
-
-
+        super().close_event(event)
+        
+    
+    def open_readme(self):
+        url = QUrl("https://github.com/Andr3w0w3n/BNRQ/blob/main/README.md")
+        QtGui.QDesktopServices.openUrl(url)
+        
+        
+    def open_pref_dialog(self):     
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Preferences")
+        if self.settings is None:
+            print("self.settings = None")
+        
+        
+        pref_widget = PreferencesTab(self.settings)
+        layout = QVBoxLayout()
+        layout.addWidget(pref_widget)
+        dialog.setLayout(layout)
+        dialog.setModal(True)
+        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        
+        dialog.show()
+        
+        
+        
 if __name__ == "__main__":
     """Program start. This creates an insance of the MainWindow and shows
         it to the user. 
     """
     app = QApplication(sys.argv)
-    main_window = MainWindow()
+    main_window = Application()
     #pdb.run('main_window.show()', globals(), locals())
     main_window.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())

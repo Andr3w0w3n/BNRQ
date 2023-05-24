@@ -4,17 +4,18 @@ import os
 from functools import partial
 
 from SeparateThread import SeparateThread
+from Settings import Settings
 
 from PySide2 import QtWidgets, QtCore
 from PySide2.QtCore import QThread, QCoreApplication
 from PySide2.QtGui import QMovie
 from PySide2.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
-    QMessageBox, QApplication
+    QMessageBox, QApplication, QDialog
 )
 
 
-class PreferencesTab(QWidget):
+class PreferencesTab(QDialog):
     """
         The preferences tab for Nuke Render Queue.
 
@@ -44,7 +45,6 @@ class PreferencesTab(QWidget):
         self.loading_label.setScaledContents(True)
         self.loading_label.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.loading_label.setAlignment(QtCore.Qt.AlignCenter)
-        
 
         # Create the widgets for the preferences tab
         nuke_exe_label = QLabel("Nuke Executable Path:")
@@ -64,6 +64,7 @@ class PreferencesTab(QWidget):
         
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_button_clicked)
+        #self.save_button.clicked.connect(self.figure_bs_out)
         self.cancel_changes_button = QPushButton("Cancel")
         self.cancel_changes_button.clicked.connect(self.cancel_setting_changes)
         self.disable_save_buttons()
@@ -109,8 +110,8 @@ class PreferencesTab(QWidget):
         folder_dialog.setFilter(QtCore.QDir.Executable)
         path, _ = folder_dialog.getOpenFileName(self, 
                                                 "Select File", 
-                                                self.settings.folder_search_start, 
-                                                "Executables (*.exe) ;; All Files(*)")
+                                                self.search_start_edit.text(), 
+                                                "Executables (*.exe)")
         
         if path:
             self.nuke_exe_edit.setText(path)
@@ -135,7 +136,7 @@ class PreferencesTab(QWidget):
         self.settings.write_node_name = self.write_node_edit.text()
         self.settings.nuke_exe = self.nuke_exe_edit.text()
         self.settings.folder_search_start = self.search_start_edit.text()
-        self.settings.save_settings
+        self.settings.save_settings()
 
         self.disable_save_buttons()
 
@@ -203,4 +204,10 @@ class PreferencesTab(QWidget):
     def disable_save_buttons(self):
         self.save_button.setEnabled(False)
         self.cancel_changes_button.setEnabled(False)
+        
+        
+    def figure_bs_out(self):
+        print("Nuke exe" + self.settings.nuke_exe)
+        print(f"filepath: {self.settings.folder_search_start}")
+        print(f"write node name: {self.settings.write_node_name}")
         
