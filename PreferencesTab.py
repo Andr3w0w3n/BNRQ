@@ -6,14 +6,14 @@ from functools import partial
 from SeparateThread import SeparateThread
 from Settings import Settings
 
-from PySide2 import QtWidgets, QtCore
-from PySide2.QtCore import QThread, QCoreApplication
-from PySide2.QtGui import QMovie
-from PySide2.QtWidgets import (
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtCore import QThread, QCoreApplication
+from PySide6.QtGui import QMovie
+from PySide6.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
     QMessageBox, QApplication, QDialog
 )
-
+from PySide6.QtCore import(QSettings, Qt, QUrl)
 
 class PreferencesTab(QDialog):
     """
@@ -29,6 +29,7 @@ class PreferencesTab(QDialog):
             update_nuke_path(): A method that updates the Nuke executable path based on the user's selection.
             update_file_start_path(): A method that updates the starting folder for the file search based on the user's selection.
     """
+
     def __init__(self, settings):
         super().__init__()
 
@@ -99,6 +100,13 @@ class PreferencesTab(QDialog):
         vbox.addLayout(write_node_layout)
         vbox.addLayout(button_layout)
         self.setLayout(vbox)
+
+        self.dialog = QDialog(self)
+        self.dialog.setWindowTitle("Preferences") 
+        self.dialog.setLayout(vbox)
+        self.dialog.setModal(True)
+        self.dialog.setWindowFlags(self.dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowCloseButtonHint)  
     
     
     def update_nuke_path(self):
@@ -116,6 +124,19 @@ class PreferencesTab(QDialog):
         if path:
             self.nuke_exe_edit.setText(path)
         
+
+    def closeEvent(self, event):
+        if self.pref_widget.save_button.isEnabled():
+            reply = QMessageBox.question(self.dialog, "Unsaved Changes",
+                                         "Are you sure you want to close without saving your changes?",
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
+
 
     def update_file_start_path(self):
         """A visual way to find and update the file finder start folder path
@@ -203,9 +224,9 @@ class PreferencesTab(QDialog):
     
     def disable_save_buttons(self):
         self.save_button.setEnabled(False)
-        self.cancel_changes_button.setEnabled(False)
-        
-        
+        self.cancel_changes_button.setEnabled(False) 
+    
+
     def figure_bs_out(self):
         print("Nuke exe" + self.settings.nuke_exe)
         print(f"filepath: {self.settings.folder_search_start}")

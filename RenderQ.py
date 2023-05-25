@@ -6,14 +6,14 @@ from PreferencesTab import PreferencesTab
 from Settings import Settings
 from MainWindowTab import MainWindowTab
 
-from PySide2 import QtWidgets, QtGui, QtCore
-from PySide2.QtWidgets import (
+from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget, QToolBar,
     QDialog
 )
-from PySide2.QtCore import(QSettings, Qt, QUrl)
+from PySide6.QtCore import(QSettings, Qt, QUrl, QEventLoop)
 
 
 
@@ -67,41 +67,63 @@ class Application(QMainWindow):
         toolbar.addWidget(help_button)
         toolbar.setMovable(False)
         self.addToolBar(Qt.TopToolBarArea, toolbar)
+
+        """
+        self.dialog = QDialog(self)
+        self.dialog.setWindowTitle("Preferences")             
+        self.pref_widget = PreferencesTab(self.settings)
+        layout = QVBoxLayout()
+        layout.addWidget(self.pref_widget)
+        self.dialog.setLayout(layout)
+        self.dialog.setModal(True)
+        self.dialog.setWindowFlags(self.dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowCloseButtonHint)      
+        """
         
 
-
-    def close_event(self, event):
-        """This method saves the settings and then ends whatever event is passed into it
+    def closeEvent(self, event):
+        """This method ends the events, it does not save any settings
 
         Args:
             event: The event passed into the method
         """
-        self.settings.save_settings()
-        super().close_event(event)
+        super().closeEvent(event)
         
     
     def open_readme(self):
         url = QUrl("https://github.com/Andr3w0w3n/BNRQ/blob/main/README.md")
         QtGui.QDesktopServices.openUrl(url)
+
         
-        
-    def open_pref_dialog(self):     
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Preferences")
-        if self.settings is None:
-            print("self.settings = None")
-        
-        
-        pref_widget = PreferencesTab(self.settings)
-        layout = QVBoxLayout()
-        layout.addWidget(pref_widget)
-        dialog.setLayout(layout)
-        dialog.setModal(True)
-        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        
-        dialog.show()
-        
-        
+    def open_pref_dialog(self):
+        prefs = PreferencesTab(self.settings)
+        prefs.dialog.show()
+
+        prefs.dialog_loop.exec()
+
+        #self.dialog.finished.connect(self.not_saved_warning)
+
+    """
+    def not_saved_warning(self):
+        if self.pref_widget.save_button.isEnabled():
+            warning_box = QMessageBox()
+            warning_box.setIcon(QMessageBox.Warning)
+            warning_box.setWindowTitle("Warning")
+            warning_box.setText("This is a warning message.")
+            warning_box.setStandardButtons(QMessageBox.Ok)
+            warning_box.finished.connect(warning_box.accept)
+
+
+    def handle_dialog_close(self):
+        if self.pref_widget.save_button.isEnabled():
+            reply = QMessageBox.question(self.dialog, "Unsaved Changes",
+                                         "Are you sure you want to close without saving your changes?",
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.dialog.reject()
+        else:
+            self.dialog.reject()
+    """
         
 if __name__ == "__main__":
     """Program start. This creates an insance of the MainWindow and shows
@@ -111,4 +133,4 @@ if __name__ == "__main__":
     main_window = Application()
     #pdb.run('main_window.show()', globals(), locals())
     main_window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
