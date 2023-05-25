@@ -8,25 +8,21 @@ application. The code is open for anyone to see for not only clarity purposes bu
 purposes as well. 
 
 ## Content Description
-RenderQueue Builds : *The build folders for each exe build. See installation for information on each of the builds*
+<br>Assets: *A folder that contains any image, video, or audio assets for the project*
+<br>RenderQueue Builds : *The build folders for each exe build. See installation for information on each of the builds*
+<br>CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation*
+<br>ErrorCodes.py : *This is a class that makes it easier to access and read any error codes*
+<br>LICENSE : *The license for BNRQ*
+<br>MainWindowTab.py : *This is the class that holds the code for the Main Window Tab. This includes functionality and look*
+<br>PreferencesTab.py : *This is the class that holds the code for the Preferences Tab. This includes functionality and look*
+<br>RenderQ.py : *This is the class that holds the main function and launches the pyside application*
+<br>RenderScript.py : *This is a python script built for the program to run in Nuke. It opens a designated project and renders it.
+<br>		Returning an exit code that the program may use to display errors if any occur.*
+<br>settings.json : *The settings file holding all settings so they may be accessed next application launch*
+<br>Settings.py : *This is the class that runs and manages settings for the pyside application.*
+<br>	      ***Note***:*Settings are not saved in an file, so the application basically only has temporary settings at the moment*
+<br>setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
-CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation*
-
-LICENSE : *The license for BNRQ*
-
-MainWindowTab.py : *This is the class that holds the code for the Main Window Tab. This includes functionality and look*
-
-PreferencesTab.py : *This is the class that holds the code for the Preferences Tab. This includes functionality and look*
-
-RenderQ.py : *This is the class that holds the main function and launches the pyside application*
-
-RenderScript.py : *This is a python script built for the program to run in Nuke. It opens a designated project and renders it.
-		Returning an exit code that the program may use to display errors if any occur.*
-		
-Settings.py : *This is the class that runs and manages settings for the pyside application.*
-	***Note***:*Settings are not saved in an file, so the application basically only has temporary settings at the moment*
-
-setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
 ## Installation
 The application is available as an executable located in the Builds folder on the project's github. Clone the github repository
@@ -37,7 +33,8 @@ This is for anyone that would like to use the spec file to build.
 
 	
 ## Use
-The Basic Nuke Render Queue (BNRQ) will hopefully be as easy to use as its own name implies. 
+The Basic Nuke Render Queue (BNRQ) will hopefully be as easy to use as its own name implies. Allowing easy to read pages and basic functionality for a nuke render queue.
+Designed to allow you to work on multiple projects without wasting time rendering. Then, at the end of the day, adding all those projects to the queue and hitting render.
 
 ### Main Page
 
@@ -87,7 +84,7 @@ Preferences dialog without saving, no settings will be saved and they will be se
 
 A prompt will appear when the user has made changes that have not been saved.
 
-###Notes Build v1.0
+### Notes Build v1.0
 - The *Render* button does not provide any additional prompts or confirmation and will just begin rendering. You can click cancel on the progress bar to terminate rendering.\n
       However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
 - The *Clear* button will prompt the user if they would like to continue clearing the list of nuke scripts only if the number of files exceeds 5. 
