@@ -37,6 +37,32 @@ This is for anyone that would like to use the spec file to build.
 
 	
 ## Use
+The Basic Nuke Render Queue (BNRQ) will hopefully be as easy to use as its own name implies. 
+
+### Main Page
+
+![MainPage](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/MainPage.png)
+
+To the top left you have the Preferences button and the Help button. These buttons bring you to the settings page and this ReadMe respectively. 
+\nIn the center of the application you have the section where the list of files to be rendered will be displayed.
+\nOn the right you have buttons to navigate and do basic modifications to this list. 
+\nBelow the buttons you have a list of details about the selected file. While you can select multiple files, no more than the first file selected will show the details in this section.
+
+![RenderList](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/RenderList.png)
+
+This list will show the files that have been added to it, in order that they have been added. It is also the list referenced for rendering and will be rendered in the order on the list.
+
+![](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/ListButtons.png)
+
+The buttons to the right of list are *+*, *-*, *Render*, and *Clear*. The *+* button prompts a file selector where you can select any .nk file to add to the list. The *-* button removes any file(s) that you have selected.
+The *Render* button begins rendering all the files in the list. The *Clear* button will clear the entire list of any projects.
+
+
+
+###Notes Build v1.0***
+- The *Render* button does not provide any additional prompts or confirmation and will just begin rendering. You can click cancel on the progress bar to terminate rendering.\n
+      However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
+- The *Clear* button will prompt the user if they would like to clear the list of nuke scripts only if the number of files exceeds 5. 
 
 
 ## Library references
