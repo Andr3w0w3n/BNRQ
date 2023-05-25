@@ -50,11 +50,13 @@ To the top left you have the Preferences button and the Help button. These butto
 <br>Below the buttons you have a list of details about the selected file. While you can select multiple files, no more than the first file selected will show the details in this section.
 
 <br>
+
 ![RenderList](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/RenderList.png)
 
 This list will show the files that have been added to it, in order that they have been added. It is also the list referenced for rendering and will be rendered in the order on the list.
 
 <br>
+
 ![ListButtons](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/ListButtons.png)
 
 The buttons to the right of list are *+*, *-*, *Render*, and *Clear*. 
@@ -64,6 +66,7 @@ The buttons to the right of list are *+*, *-*, *Render*, and *Clear*.
 <br>The *Clear* button will clear the entire list of any projects.
 
 <br>
+
 ![Descriptions](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/FileDescriptions.png)
 
 File descriptions provide basic information on the selected file. As previously mentioned, if multiple files are selected, only the first file selected will show up in the details section.
