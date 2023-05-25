@@ -8,14 +8,15 @@ from Settings import Settings
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QThread, QCoreApplication
-from PySide6.QtGui import QMovie
+from PySide6.QtGui import QMovie, QColor
 from PySide6.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
-    QMessageBox, QApplication, QDialog
+    QMessageBox, QApplication, QDialog, QCheckBox
 )
 from PySide6.QtCore import(QSettings, Qt, QUrl)
 
 class PreferencesTab(QDialog):
+    
     """
         The preferences tab for Nuke Render Queue.
 
@@ -62,18 +63,27 @@ class PreferencesTab(QDialog):
         
         write_node_label = QLabel("Write Node Name:")
         self.write_node_edit = QLineEdit(self.settings.write_node_name)
+
+        self.file_name_checkbox = QCheckBox("Full Path Filenames")
+        self.file_name_checkbox.setChecked(True if (isinstance(self.settings.full_filepath_name, str) and self.settings.full_filepath_name == "true") or self.settings.full_filepath_name == True else False) 
+        #self.file_name_checkbox.setChecked(self.settings.full_filepath_name.lower())
         
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_button_clicked)
         #self.save_button.clicked.connect(self.figure_bs_out)
         self.cancel_changes_button = QPushButton("Cancel")
         self.cancel_changes_button.clicked.connect(self.cancel_setting_changes)
+        
+        self.warning_label = QLabel("")
+        self.warning_label.setStyleSheet("color: red; font-weight: bold;")
+        
         self.disable_save_buttons()
 
         #if the settings have changed
         self.write_node_edit.textChanged.connect(self.settings_changed)
         self.nuke_exe_edit.textChanged.connect(self.settings_changed)
         self.search_start_edit.textChanged.connect(self.settings_changed)
+        self.file_name_checkbox.stateChanged.connect(self.settings_changed)
 
         # Add the widgets to layouts
         nuke_exe_layout = QHBoxLayout()
@@ -90,14 +100,19 @@ class PreferencesTab(QDialog):
         write_node_layout.addWidget(self.write_node_edit)
         button_layout = QHBoxLayout()
         button_layout.addStretch()
+        button_layout.addWidget(self.warning_label)
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.cancel_changes_button)
+        list_name_layout = QVBoxLayout
+        #list_name_layout.addWidget(self.file_name_checkbox)
+
 
         # Add the layouts to the preferences tab
         vbox = QVBoxLayout()
         vbox.addLayout(nuke_exe_layout)
         vbox.addLayout(search_start_layout)
         vbox.addLayout(write_node_layout)
+        vbox.addWidget(self.file_name_checkbox)
         vbox.addLayout(button_layout)
         self.setLayout(vbox)
 
@@ -106,7 +121,8 @@ class PreferencesTab(QDialog):
         self.dialog.setLayout(vbox)
         self.dialog.setModal(True)
         self.dialog.setWindowFlags(self.dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowCloseButtonHint)  
+        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowCloseButtonHint)
+        self.dialog.setFixedSize(750, 300)
     
     
     def update_nuke_path(self):
@@ -125,8 +141,9 @@ class PreferencesTab(QDialog):
             self.nuke_exe_edit.setText(path)
         
 
-    def closeEvent(self, event):
-        if self.pref_widget.save_button.isEnabled():
+    def close_prefs(self, event):
+        print("in close event")
+        if self.save_button.isEnabled():
             reply = QMessageBox.question(self.dialog, "Unsaved Changes",
                                          "Are you sure you want to close without saving your changes?",
                                          QMessageBox.Yes | QMessageBox.No)
@@ -157,6 +174,7 @@ class PreferencesTab(QDialog):
         self.settings.write_node_name = self.write_node_edit.text()
         self.settings.nuke_exe = self.nuke_exe_edit.text()
         self.settings.folder_search_start = self.search_start_edit.text()
+        self.settings.full_filepath_name = self.file_name_checkbox.isChecked()
         self.settings.save_settings()
 
         self.disable_save_buttons()
@@ -220,12 +238,21 @@ class PreferencesTab(QDialog):
     def enable_save_buttons(self):
         self.save_button.setEnabled(True)
         self.cancel_changes_button.setEnabled(True)
+        self.show_warning_label(True)
     
     
     def disable_save_buttons(self):
         self.save_button.setEnabled(False)
-        self.cancel_changes_button.setEnabled(False) 
+        self.cancel_changes_button.setEnabled(False)
+        self.show_warning_label(False)
     
+
+    def show_warning_label(self, on = False):
+        if on:
+            self.warning_label.setText("You have not saved any changes!")
+        else:
+            self.warning_label.setText("")
+
 
     def figure_bs_out(self):
         print("Nuke exe" + self.settings.nuke_exe)

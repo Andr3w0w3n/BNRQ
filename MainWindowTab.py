@@ -15,7 +15,7 @@ from ErrorCodes import ErrorCodes
 from functools import partial
 
 from PySide6 import QtWidgets, QtGui, QtCore
-from PySide6.QtCore import QCoreApplication, QThread, QObject
+from PySide6.QtCore import QCoreApplication, QThread, QObject, QTimer
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
@@ -79,7 +79,9 @@ class MainWindowTab(QWidget):
                 file_list (QListWidget): The list widget containing the file paths to render.
         """
         super().__init__()
-        
+       
+
+
         self.settings = settings
         self.file_paths = []
         self.py_render_script = r"./RenderScript.py"
@@ -89,7 +91,8 @@ class MainWindowTab(QWidget):
         self.continue_rendering = True
         
 
-        #TODO - settings file to minimize boot time
+        #update variables
+        self.full_filepath_name = self.settings.full_filepath_name
         
         self.add_script = QPushButton("+")
         self.remove_script = QPushButton("-")
@@ -128,6 +131,10 @@ class MainWindowTab(QWidget):
         self.render_button.clicked.connect(self.run_render)
         self.file_list.itemSelectionChanged.connect(self.get_write_info)
 
+        #update timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update)
+        self.timer.start(500)
     
     def add_script_to_q(self):
         """   
@@ -174,8 +181,18 @@ class MainWindowTab(QWidget):
             Updating all the list to the latest files in the file_path list.
         """
         self.file_list.clear()
-        for file_path in self.file_paths:
-            self.file_list.addItem(file_path)
+
+        #continue to catch if the true/false for some reason still is a string (not sure why it would be able this point tho)
+        if isinstance(self.full_filepath_name, str) and self.full_filepath_name == "true":
+            self.full_filepath_name = True
+        elif isinstance(self.full_filepath_name, str) and self.full_filepath_name == "false":
+            self.full_filepath_name = False
+
+        if self.full_filepath_name:
+                self.file_list.addItems(self.file_paths)         
+        else:
+            for file_path in self.file_paths:
+                self.file_list.addItem(os.path.basename(file_path))
 
 
     def clear_file_list(self):
@@ -337,12 +354,13 @@ class MainWindowTab(QWidget):
 
     #could potentially make the output look nicer    
     def get_write_info(self):
+
         if not self.file_list.selectedItems():
             self.write_details.setText("")
             return
             
-        selected_item = self.file_list.selectedItems()[0]
-        selected_script = open(selected_item.text(), 'r').read()
+        index = self.file_list.row(self.file_list.selectedItems()[0])
+        selected_script = open(self.file_paths[index], 'r').read()
         
         extra_info = ""
         write_line = selected_script.splitlines()[1]
@@ -391,3 +409,9 @@ class MainWindowTab(QWidget):
                                     f"{extra_info}"
                                     f"{colorspace_line}"
                                     f"{codec}")
+        
+
+    def update(self):
+        if self.full_filepath_name != self.settings.full_filepath_name:
+            self.full_filepath_name = self.settings.full_filepath_name
+            self.update_file_list()

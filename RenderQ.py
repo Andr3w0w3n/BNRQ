@@ -97,9 +97,8 @@ class Application(QMainWindow):
         
     def open_pref_dialog(self):
         prefs = PreferencesTab(self.settings)
-        prefs.dialog.show()
-
-        prefs.dialog_loop.exec()
+        prefs.finished.connect(prefs.close_prefs)
+        prefs.dialog.exec()
 
         #self.dialog.finished.connect(self.not_saved_warning)
 
