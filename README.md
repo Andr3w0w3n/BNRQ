@@ -105,6 +105,7 @@ A prompt will appear when the user has made changes that have not been saved.
 - Any saved settings will be saved for next launch of the application, but any files listed in the render list will **not** be saved.
 - There is no "Reset to default" functionality for settings.
 - There is no prompt to ask the user if they would like to close settings without the changed settings being saved.
+- The program may not respond occasionally while the files are being rendered. This is normal behavior.
 
 
 ## Library references
