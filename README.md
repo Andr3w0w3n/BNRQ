@@ -62,7 +62,7 @@ The *Render* button begins rendering all the files in the list. The *Clear* butt
 File descriptions provide basic information on the selected file. As previously mentioned, if multiple files are selected, only the first file selected will show up in the details section.
 The details can change depending on the information available. The detail section will also show prompts if there are no write nodes found in the nuke script. 
 
-###Preferences
+### Preferences
 
 ![Preferences](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/PreferencesDialog.png)
 
