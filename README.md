@@ -24,6 +24,7 @@ Assets: *A folder that contains any image, video, or audio assets for the projec
 <br>setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
 <br>
+
 ## Installation
 The application is available as an executable located in the Builds folder on the project's github. Clone the github repository
 to have access to the application. Different builds will be stored in different folders so you can choose the build that you
@@ -31,12 +32,14 @@ would like to run. **You can move the executable file to any location you deem f
 You do not need the .spec file associated with the build for the executable to run. 
 This is for anyone that would like to use the spec file to build.
 
-<br>	
+<br>
+
 ## Use
 The Basic Nuke Render Queue (BNRQ) will hopefully be as easy to use as its own name implies. Allowing easy to read pages and basic functionality for a nuke render queue.
 Designed to allow you to work on multiple projects without wasting time rendering. Then, at the end of the day, adding all those projects to the queue and hitting render.
 
 <br>
+
 ### Main Page
 
 ![MainPage](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/MainPage.png)
@@ -67,6 +70,7 @@ File descriptions provide basic information on the selected file. As previously 
 The details can change depending on the information available. The detail section will also show prompts if there are no write nodes found in the nuke script. 
 
 <br>
+
 ### Preferences
 
 ![Preferences](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/PreferencesDialog.png)
