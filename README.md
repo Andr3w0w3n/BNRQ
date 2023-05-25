@@ -17,10 +17,10 @@ purposes as well.
 <br>PreferencesTab.py : *This is the class that holds the code for the Preferences Tab. This includes functionality and look*
 <br>RenderQ.py : *This is the class that holds the main function and launches the pyside application*
 <br>RenderScript.py : *This is a python script built for the program to run in Nuke. It opens a designated project and renders it.
-<br>		Returning an exit code that the program may use to display errors if any occur.*
+<br>		&#9;Returning an exit code that the program may use to display errors if any occur.*
 <br>settings.json : *The settings file holding all settings so they may be accessed next application launch*
 <br>Settings.py : *This is the class that runs and manages settings for the pyside application.*
-<br>	      ***Note***:*Settings are not saved in an file, so the application basically only has temporary settings at the moment*
+<br>	      &#9;***Note***:*Settings are not saved in an file, so the application basically only has temporary settings at the moment*
 <br>setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
 
@@ -45,9 +45,11 @@ To the top left you have the Preferences button and the Help button. These butto
 <br>On the right you have buttons to navigate and do basic modifications to this list. 
 <br>Below the buttons you have a list of details about the selected file. While you can select multiple files, no more than the first file selected will show the details in this section.
 
+
 ![RenderList](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/RenderList.png)
 
 This list will show the files that have been added to it, in order that they have been added. It is also the list referenced for rendering and will be rendered in the order on the list.
+
 
 ![ListButtons](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/ListButtons.png)
 
@@ -57,10 +59,12 @@ The buttons to the right of list are *+*, *-*, *Render*, and *Clear*.
 <br>The *Render* button begins rendering all the files in the list. 
 <br>The *Clear* button will clear the entire list of any projects.
 
+
 ![Descriptions](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/FileDescriptions.png)
 
 File descriptions provide basic information on the selected file. As previously mentioned, if multiple files are selected, only the first file selected will show up in the details section.
 The details can change depending on the information available. The detail section will also show prompts if there are no write nodes found in the nuke script. 
+
 
 ### Preferences
 
@@ -85,15 +89,15 @@ Preferences dialog without saving, no settings will be saved and they will be se
 A prompt will appear when the user has made changes that have not been saved.
 
 ### Notes Build v1.0
-- The *Render* button does not provide any additional prompts or confirmation and will just begin rendering. You can click cancel on the progress bar to terminate rendering.\n
-      However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
+- The *Render* button does not provide any additional prompts or confirmation and will just begin rendering. You can click cancel on the progress bar to terminate rendering.<br>
+      &#9;However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
 - The *Clear* button will prompt the user if they would like to continue clearing the list of nuke scripts only if the number of files exceeds 5. 
 - Details of a project will only give information of the project that is available. Only details beyond basic ones are Codec for mov's.
 - All file searches will start at where **File Search Start** is selected to start. It is not dynamic or keeps memory of previous locations.
 - There is no way to specify different write node names for different projects yet.
 - Any saved settings will be saved for next launch of the application, but any files listed in the render list will **not** be saved.
 - There is no "Reset to default" functionality for settings.
-- There is no prompt to ask the user if they would like to close settings without being saved.
+- There is no prompt to ask the user if they would like to close settings without the changed settings being saved.
 
 
 ## Library references
