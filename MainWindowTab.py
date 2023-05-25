@@ -15,13 +15,14 @@ from ErrorCodes import ErrorCodes
 from functools import partial
 
 from PySide6 import QtWidgets, QtGui, QtCore
-from PySide6.QtCore import QCoreApplication, QThread, QObject, QTimer
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget
 )
-from PySide6.QtCore import(QSettings)
+from PySide6.QtCore import(
+    QSettings, QCoreApplication, QThread, QObject, QTimer
+)
 
 
 class MainWindowTab(QWidget):
@@ -83,6 +84,7 @@ class MainWindowTab(QWidget):
 
 
         self.settings = settings
+        self.settings.load_settings()
         self.file_paths = []
         self.py_render_script = r"./RenderScript.py"
         #careful using this value as the max workers, it can cause all the scripts to be rendered at once
@@ -149,12 +151,13 @@ class MainWindowTab(QWidget):
                                                 "Nuke Scripts (*.nk)")
         if file_path:
             if file_path in self.file_paths:
-                self.confirmation_box = QMessageBox.question(self, 'Warning', 'This file is already in the list. \
+                self.add_confirmation_box = QMessageBox.question(self, 'Warning', 'This file is already in the list. \
                                                              \nDo you still wish to add it?',
                                                              QMessageBox.Yes | QMessageBox.No,
                                                              QMessageBox.No)
+                self.add_confirmation_box.setIcon(QMessageBox.critical)
 
-                if self.confirmation_box == QMessageBox.Yes:
+                if self.add_confirmation_box == QMessageBox.Yes:
                     self.file_paths.append(file_path)
                     self.update_file_list()
             else:
@@ -198,10 +201,20 @@ class MainWindowTab(QWidget):
     def clear_file_list(self):
         """
             This method updates file_paths to hold no list objects and then calls for the list
-            to be updated.
+            to be updated. If the list count is above 5 then it prompts the user if they want to
+            continue clearing the list.
         """
-        self.file_paths = []
-        self.update_file_list()
+        if len(self.file_paths) > 5:
+            self.clear_confirmation_box = QMessageBox.question(self, 'Warning', 'You have a large number of files in the list. \
+                                                             \nDo you still wish to clear the list?',
+                                                             QMessageBox.Yes | QMessageBox.No,
+                                                             QMessageBox.No)
+            if self.clear_confirmation_box == QMessageBox.Yes:
+                self.file_paths = []
+                self.update_file_list()
+        else:
+            self.file_paths = []
+            self.update_file_list()
 
 
     def run_render(self):
@@ -412,6 +425,6 @@ class MainWindowTab(QWidget):
         
 
     def update(self):
-        if self.full_filepath_name != self.settings.full_filepath_name:
+        if str(self.full_filepath_name).lower() != str(self.settings.full_filepath_name).lower():
             self.full_filepath_name = self.settings.full_filepath_name
             self.update_file_list()

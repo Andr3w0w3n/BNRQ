@@ -91,7 +91,7 @@ class Application(QMainWindow):
         
     
     def open_readme(self):
-        url = QUrl("https://github.com/Andr3w0w3n/BNRQ/blob/main/README.md")
+        url = QUrl("https://github.com/Andr3w0w3n/BNRQ/blob/main/README.md#use")
         QtGui.QDesktopServices.openUrl(url)
 
         

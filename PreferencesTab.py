@@ -7,13 +7,13 @@ from SeparateThread import SeparateThread
 from Settings import Settings
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QThread, QCoreApplication
-from PySide6.QtGui import QMovie, QColor
+from PySide6.QtGui import QMovie, QColor, QIcon
 from PySide6.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
     QMessageBox, QApplication, QDialog, QCheckBox
 )
-from PySide6.QtCore import(QSettings, Qt, QUrl)
+from PySide6.QtCore import(QSettings, Qt, QUrl, QThread, QCoreApplication)
+
 
 class PreferencesTab(QDialog):
     
@@ -105,8 +105,7 @@ class PreferencesTab(QDialog):
         button_layout.addWidget(self.cancel_changes_button)
         list_name_layout = QVBoxLayout
         #list_name_layout.addWidget(self.file_name_checkbox)
-
-
+        
         # Add the layouts to the preferences tab
         vbox = QVBoxLayout()
         vbox.addLayout(nuke_exe_layout)
@@ -142,7 +141,6 @@ class PreferencesTab(QDialog):
         
 
     def close_prefs(self, event):
-        print("in close event")
         if self.save_button.isEnabled():
             reply = QMessageBox.question(self.dialog, "Unsaved Changes",
                                          "Are you sure you want to close without saving your changes?",
@@ -194,6 +192,7 @@ class PreferencesTab(QDialog):
         
         self.loading_gif.start()
         self.loading_label.show()
+        self.loading_label.raise_()
         QCoreApplication.processEvents()
 
         #Thread creator
@@ -217,10 +216,11 @@ class PreferencesTab(QDialog):
             self.nuke_exe_edit.setText(nuke_path)
         else:
             error_box = QMessageBox()
-            error_box.setIcon(QMessageBox.Critical)
+            error_box.setIcon(QMessageBox.critical)
             error_box.setText("No Nuke path found!")
             error_box.exec_()
         self.threads.quit()
+        self.loading_gif.stop()
         QCoreApplication.processEvents()
        
         
