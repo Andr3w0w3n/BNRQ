@@ -95,7 +95,9 @@ Preferences dialog without saving, no settings will be saved and they will be se
 
 A prompt will appear when the user has made changes that have not been saved.
 
-### Notes Build v1.0
+## Notes 
+
+### Build v1.0
 - The *Render* button does not provide any additional prompts or confirmation and will just begin rendering. You can click cancel on the progress bar to terminate rendering.<br>
              However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
 - The *Clear* button will prompt the user if they would like to continue clearing the list of nuke scripts only if the number of files exceeds 5. 
