@@ -20,7 +20,6 @@ Assets: *A folder that contains any image, video, or audio assets for the projec
 <br>		&#9;Returning an exit code that the program may use to display errors if any occur.*
 <br>settings.json : *The settings file holding all settings so they may be accessed next application launch*
 <br>Settings.py : *This is the class that runs and manages settings for the pyside application.*
-<br>	      &#9;***Note***:*Settings are not saved in an file, so the application basically only has temporary settings at the moment*
 <br>setup.py : *This is for construction of the executable. It is used to make the .spec file*
 
 <br>
@@ -98,7 +97,7 @@ A prompt will appear when the user has made changes that have not been saved.
 
 ### Notes Build v1.0
 - The *Render* button does not provide any additional prompts or confirmation and will just begin rendering. You can click cancel on the progress bar to terminate rendering.<br>
-      &#9;However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
+             However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
 - The *Clear* button will prompt the user if they would like to continue clearing the list of nuke scripts only if the number of files exceeds 5. 
 - Details of a project will only give information of the project that is available. Only details beyond basic ones are Codec for mov's.
 - All file searches will start at where **File Search Start** is selected to start. It is not dynamic or keeps memory of previous locations.
