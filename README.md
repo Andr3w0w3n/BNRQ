@@ -44,9 +44,9 @@ The Basic Nuke Render Queue (BNRQ) will hopefully be as easy to use as its own n
 ![MainPage](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/MainPage.png)
 
 To the top left you have the Preferences button and the Help button. These buttons bring you to the settings page and this ReadMe respectively. 
-\nIn the center of the application you have the section where the list of files to be rendered will be displayed.
-\nOn the right you have buttons to navigate and do basic modifications to this list. 
-\nBelow the buttons you have a list of details about the selected file. While you can select multiple files, no more than the first file selected will show the details in this section.
+<br>In the center of the application you have the section where the list of files to be rendered will be displayed.
+<br>On the right you have buttons to navigate and do basic modifications to this list. 
+<br>Below the buttons you have a list of details about the selected file. While you can select multiple files, no more than the first file selected will show the details in this section.
 
 ![RenderList](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/RenderList.png)
 
@@ -54,8 +54,11 @@ This list will show the files that have been added to it, in order that they hav
 
 ![ListButtons](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/ListButtons.png)
 
-The buttons to the right of list are *+*, *-*, *Render*, and *Clear*. The *+* button prompts a file selector where you can select any .nk file to add to the list. The *-* button removes any file(s) that you have selected.
-The *Render* button begins rendering all the files in the list. The *Clear* button will clear the entire list of any projects.
+The buttons to the right of list are *+*, *-*, *Render*, and *Clear*. 
+<br>The *+* button prompts a file selector where you can select any .nk file to add to the list. 
+<br>The *-* button removes any file(s) that you have selected.
+<br>The *Render* button begins rendering all the files in the list. 
+<br>The *Clear* button will clear the entire list of any projects.
 
 ![Descriptions](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/FileDescriptions.png)
 
@@ -71,20 +74,20 @@ The Preferences dialog will show up when the Preferences button on the main page
 **Nuke Executable Path** is the setting of what nuke executable is used for rendering. This path can be entered manually in the text editor. It can also be entered via a visual path finder by clicking the buton *File Explorer*.
 The button *Find Nuke* will search through the path C:/ProgramFiles/ for the nuke exectuable with the latest version. When BNRQ boots up for the first time, this action will be performed automatically.
 If no nuke executable is found, this section will appear blank.
-\n**File Search Start** is a setting that allows you to select the start point for all file searches (including the folder searches for settings). This can be changed manually in the text editor. it can also be changed via clicking
+<br>**File Search Start** is a setting that allows you to select the start point for all file searches (including the folder searches for settings). This can be changed manually in the text editor. it can also be changed via clicking
 the *File Explorer* button and selecting the folder you want to start at.
-\n**Write Node Name** is the name of the write node that BNRQ will look for to render out of. This is for the fact that nuke scripts can have multiple write nodes. This setting allows you to change the name to the name of the write node
+<br>**Write Node Name** is the name of the write node that BNRQ will look for to render out of. This is for the fact that nuke scripts can have multiple write nodes. This setting allows you to change the name to the name of the write node
 that you want nuke to render out of. You can change the write node name by manually entering the name in the text editor. **THIS NAME IS CASE SENSITIVE**
-\n**Full Path Filenames** is a checkbox where you can either have the entire filepath of the nuke scripts in the list displayed, or you can have just the project name displayed. Checking the box turns on the full paths labeling.
+<br>**Full Path Filenames** is a checkbox where you can either have the entire filepath of the nuke scripts in the list displayed, or you can have just the project name displayed. Checking the box turns on the full paths labeling.
 Unchecking the box turns the labels to just the project names
 
 The *Save* Button is required to be clicked to save any changes. It will be available to be clicked once any changes to the settings are made, even if you change them back to what they originally were. If you were to close the 
 Preferences dialog without saving, no settings will be saved and they will be set back to their previous values.
-\nThe *Cancel* button discards all non-saved changes without closing the Preferences dialog. 
+<br>The *Cancel* button discards all non-saved changes without closing the Preferences dialog. 
 
 A prompt will appear when the user has made changes that have not been saved.
 
-###Notes Build v1.0\n
+###Notes Build v1.0
 - The *Render* button does not provide any additional prompts or confirmation and will just begin rendering. You can click cancel on the progress bar to terminate rendering.\n
       However, it will always render the script that it is currently rendering to completion before cancelling any further renders.
 - The *Clear* button will prompt the user if they would like to continue clearing the list of nuke scripts only if the number of files exceeds 5. 
