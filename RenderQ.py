@@ -6,14 +6,14 @@ from PreferencesTab import PreferencesTab
 from Settings import Settings
 from MainWindowTab import MainWindowTab
 
-from PySide6 import QtWidgets, QtGui, QtCore
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtGui, QtCore
+from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget, QToolBar,
     QDialog
 )
-from PySide6.QtCore import(QSettings, Qt, QUrl, QEventLoop)
+from PySide2.QtCore import(QSettings, Qt, QUrl, QEventLoop)
 
 
 
@@ -98,7 +98,7 @@ class Application(QMainWindow):
     def open_pref_dialog(self):
         prefs = PreferencesTab(self.settings)
         prefs.finished.connect(prefs.close_prefs)
-        prefs.dialog.exec()
+        prefs.dialog.exec_()
 
         #self.dialog.finished.connect(self.not_saved_warning)
 
@@ -132,4 +132,4 @@ if __name__ == "__main__":
     main_window = Application()
     #pdb.run('main_window.show()', globals(), locals())
     main_window.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())

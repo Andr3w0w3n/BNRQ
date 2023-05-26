@@ -6,13 +6,13 @@ from functools import partial
 from SeparateThread import SeparateThread
 from Settings import Settings
 
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtGui import QMovie, QColor, QIcon
-from PySide6.QtWidgets import (
+from PySide2 import QtWidgets, QtCore
+from PySide2.QtGui import QMovie, QColor, QIcon, QPalette
+from PySide2.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
     QMessageBox, QApplication, QDialog, QCheckBox
 )
-from PySide6.QtCore import(QSettings, Qt, QUrl, QThread, QCoreApplication)
+from PySide2.QtCore import(QSettings, Qt, QUrl, QThread, QCoreApplication)
 
 
 class PreferencesTab(QDialog):
@@ -38,6 +38,7 @@ class PreferencesTab(QDialog):
         self.settings = settings
 
         #loading GIF
+        """
         self.loading_label = QLabel()
         self.loading_gif = QMovie("./Assets/FolderLoading.gif")
         self.loading_label.setMovie(self.loading_gif)
@@ -47,7 +48,18 @@ class PreferencesTab(QDialog):
         self.loading_label.setScaledContents(True)
         self.loading_label.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.loading_label.setAlignment(QtCore.Qt.AlignCenter)
-
+        
+        self.loading_dialog = QDialog(None, Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.loading_label = QLabel("Loading...", self.loading_dialog)
+        #self.loading_dialog.setStyleSheet("background-color: transparent;")
+        self.loading_dialog.setAutoFillBackground(True)
+        self.loading_dialog.setBackgroundRole(QPalette.Base)
+        self.loading_dialog.setPalette(QPalette(QColor(256, 256, 256, 0)))
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        color = "black"
+        self.loading_label.setStyleSheet("color: {};".format(color))
+        """
+        
         # Create the widgets for the preferences tab
         nuke_exe_label = QLabel("Nuke Executable Path:")
         self.nuke_exe_edit = QLineEdit(self.settings.nuke_exe)
@@ -189,10 +201,10 @@ class PreferencesTab(QDialog):
         """Sets up a loading icon and then starts the task of finding the Nuke executable in 
             a separate thread.
         """
+        #self.loading_gif.start()
+        #self.loading_label.show()
+        #self.loading_label.raise_()
         
-        self.loading_gif.start()
-        self.loading_label.show()
-        self.loading_label.raise_()
         QCoreApplication.processEvents()
 
         #Thread creator
@@ -220,7 +232,8 @@ class PreferencesTab(QDialog):
             error_box.setText("No Nuke path found!")
             error_box.exec_()
         self.threads.quit()
-        self.loading_gif.stop()
+        #self.loading_dialog.hide()
+        #self.loading_label.hide()
         QCoreApplication.processEvents()
        
         

@@ -2,8 +2,8 @@ import sys
 import os
 import json
 
-from PySide6 import QtCore
-from PySide6.QtCore import(QSettings)
+from PySide2 import QtCore
+from PySide2.QtCore import(QSettings)
 
 
 class Settings(QtCore.QSettings):
@@ -13,16 +13,19 @@ class Settings(QtCore.QSettings):
     #For now, it is working as the settings are being taken from self. , unsure how this will affect if 
     #   you create a new instance of settings
 
-    def __init__(self, skip_json):
+    def __init__(self, skip_json = False):
         super().__init__()
         self.applicationName = "Nuke Render Queue"
         self.nuke_exe = None
-        self.folder_search_start = "C:\\"
+        self.folder_search_start = "C:\\Users\\"
         self.write_node_name = "Write1"
         self.settings_filepath = r".\settings.json"
         self.full_filepath_name = True
         
-        self.load_settings_from_json()
+        if not skip_json:
+            self.load_settings_from_json()
+            
+        self.load_settings()
         if self.nuke_exe is None:
             self.nuke_exe = self.get_default_nuke_path()
         self.save_settings()

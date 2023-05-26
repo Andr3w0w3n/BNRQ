@@ -7,9 +7,9 @@ from typing import Optional
 from Settings import Settings
 from ErrorCodes import ErrorCodes
 
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QThread, Signal, QObject
-from PySide6.QtWidgets import QMessageBox
+from PySide2 import QtWidgets, QtCore
+from PySide2.QtCore import QThread, Signal, QObject
+from PySide2.QtWidgets import QMessageBox
 
 class SeparateThread(QObject):
     """A class to handle single thread tasks. This was created to help keep the GUI active while some tasks
@@ -31,7 +31,7 @@ class SeparateThread(QObject):
             
     def __init__(self):
         super().__init__()
-        self.settings = Settings()
+        self.settings = Settings(True)
         self.settings.load_settings()
         self.error_obj = ErrorCodes()
         self.stop_flag = False
