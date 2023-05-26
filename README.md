@@ -26,10 +26,10 @@ Assets: *A folder that contains any image, video, or audio assets for the projec
 
 ## Installation
 The application is available as an executable located in the Builds folder on the project's github. Clone the github repository
-to have access to the application. Different builds will be stored in different folders so you can choose the build that you
-would like to run. **You can move the executable file to any location you deem fit and the program will still work.**
+to have access to the application. Different builds will be stored in different folders inside the builds folder, so you can choose the build that you
+would like to run. **As of build v1.0, you can move the executable file to any location you deem fit and the program will still work.**
 You do not need the .spec file associated with the build for the executable to run. 
-This is for anyone that would like to use the spec file to build.
+This is for anyone that would like to use the spec file to build the code again.
 
 <br>
 
@@ -104,7 +104,7 @@ A prompt will appear when the user has made changes that have not been saved.
 - Details of a project will only give information of the project that is available. Only details beyond basic ones are Codec for mov's.
 - All file searches will start at where **File Search Start** is selected to start. It is not dynamic or keeps memory of previous locations.
 - There is no way to specify different write node names for different projects yet.
-- Any saved settings will be saved for next launch of the application, but any files listed in the render list will **not** be saved.
+- Any saved settings will **not** be saved for next launch of the application, and any files listed in the render list will **not** be saved.
 - There is no "Reset to default" functionality for settings.
 - There is no prompt to ask the user if they would like to close settings without the changed settings being saved.
 - The program may not respond occasionally while the files are being rendered. This is normal behavior.
