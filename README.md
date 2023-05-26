@@ -9,7 +9,7 @@ purposes as well.
 
 ## Content Description
 Assets: *A folder that contains any image, video, or audio assets for the project*
-<br>RenderQueue Builds : *The build folders for each exe build. See the bottom of [Use](https://github.com/Andr3w0w3n/BNRQ/blob/main/README.md#use) and/or [Installation](https://github.com/Andr3w0w3n/BNRQ/blob/main/README.md#installation) for detailed information on each of the builds*
+<br>RenderQueue Builds : *The build folders for each exe build. See the bottom of [Notes](https://github.com/Andr3w0w3n/BNRQ#notes) for detailed information on each of the builds*
 <br>CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation*
 <br>ErrorCodes.py : *This is a class that makes it easier to access and read any error codes*
 <br>LICENSE : *The license for BNRQ*
