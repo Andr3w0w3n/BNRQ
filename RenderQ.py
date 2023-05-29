@@ -34,7 +34,7 @@ class Application(QMainWindow):
         super(Application, self).__init__()
 
         #load settings
-        self.settings = Settings(False)
+        self.settings = Settings(True)
         self.settings.load_settings()
         
         #Window set
