@@ -6,14 +6,14 @@ from PreferencesTab import PreferencesTab
 from Settings import Settings
 from MainWindowTab import MainWindowTab
 
-from PySide2 import QtWidgets, QtGui, QtCore
-from PySide2.QtWidgets import (
+from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget, QToolBar,
     QDialog
 )
-from PySide2.QtCore import(QSettings, Qt, QUrl, QEventLoop)
+from PySide6.QtCore import(QSettings, Qt, QUrl, QEventLoop)
 
 
 
@@ -34,7 +34,7 @@ class Application(QMainWindow):
         super(Application, self).__init__()
 
         #load settings
-        self.settings = Settings(True)
+        self.settings = Settings()
         self.settings.load_settings()
         
         #Window set
@@ -87,6 +87,10 @@ class Application(QMainWindow):
         Args:
             event: The event passed into the method
         """
+        pyside_settings = QtCore.QSettings("Andrew Owen", "BNRQ")
+        pyside_settings.clear()
+
+        #self.settings.remove_appdata_contents()
         super().closeEvent(event)
         
     
@@ -98,7 +102,7 @@ class Application(QMainWindow):
     def open_pref_dialog(self):
         prefs = PreferencesTab(self.settings)
         prefs.finished.connect(prefs.close_prefs)
-        prefs.dialog.exec_()
+        prefs.dialog.exec()
 
         #self.dialog.finished.connect(self.not_saved_warning)
 
@@ -108,7 +112,7 @@ class Application(QMainWindow):
             warning_box = QMessageBox()
             warning_box.setIcon(QMessageBox.Warning)
             warning_box.setWindowTitle("Warning")
-            warning_box.setText("This is a warning message.")
+            warning_box.setText("No settings were saved")
             warning_box.setStandardButtons(QMessageBox.Ok)
             warning_box.finished.connect(warning_box.accept)
 
@@ -132,4 +136,4 @@ if __name__ == "__main__":
     main_window = Application()
     #pdb.run('main_window.show()', globals(), locals())
     main_window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

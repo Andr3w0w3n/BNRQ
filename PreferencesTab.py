@@ -6,13 +6,13 @@ from functools import partial
 from SeparateThread import SeparateThread
 from Settings import Settings
 
-from PySide2 import QtWidgets, QtCore
-from PySide2.QtGui import QMovie, QColor, QIcon, QPalette
-from PySide2.QtWidgets import (
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtGui import QMovie, QColor, QIcon, QPalette
+from PySide6.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QFileDialog,
     QMessageBox, QApplication, QDialog, QCheckBox
 )
-from PySide2.QtCore import(QSettings, Qt, QUrl, QThread, QCoreApplication)
+from PySide6.QtCore import(QSettings, Qt, QUrl, QThread, QCoreApplication)
 
 
 class PreferencesTab(QDialog):
@@ -230,7 +230,7 @@ class PreferencesTab(QDialog):
             error_box = QMessageBox()
             error_box.setIcon(QMessageBox.critical)
             error_box.setText("No Nuke path found!")
-            error_box.exec_()
+            error_box.exec()
         self.threads.quit()
         #self.loading_dialog.hide()
         #self.loading_label.hide()
