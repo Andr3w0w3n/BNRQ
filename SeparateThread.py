@@ -7,9 +7,9 @@ from typing import Optional
 from Settings import Settings
 from ErrorCodes import ErrorCodes
 
-from PySide2 import QtWidgets, QtCore
-from PySide2.QtCore import QThread, Signal, QObject
-from PySide2.QtWidgets import QMessageBox
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtCore import QThread, Signal, QObject
+from PySide6.QtWidgets import QMessageBox
 
 class SeparateThread(QObject):
     """A class to handle single thread tasks. This was created to help keep the GUI active while some tasks
@@ -27,7 +27,7 @@ class SeparateThread(QObject):
     nuke_path_ready = Signal(str)
     render_script_update = Signal(str, int, float)
     render_done = Signal()
-    
+
             
     def __init__(self):
         super().__init__()

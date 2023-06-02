@@ -1,21 +1,27 @@
 import sys
 import os
 import subprocess
+import time
+import threading
 
 from PreferencesTab import PreferencesTab
 from Settings import Settings
 from MainWindowTab import MainWindowTab
+from SeparateThread import SeparateThread
+from SplashScreen import SplashScreen
+
 
 from PySide6 import QtWidgets, QtGui, QtCore
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QHBoxLayout,
     QLabel, QLineEdit, QVBoxLayout, QGridLayout, QFileDialog,
     QMainWindow, QListWidget, QMessageBox, QTabWidget, QToolBar,
-    QDialog
+    QDialog, QSplashScreen
 )
-from PySide6.QtCore import(QSettings, Qt, QUrl, QEventLoop)
-
-
+from PySide6.QtCore import(
+    QSettings, Qt, QUrl, QEventLoop, QThread, 
+    QCoreApplication, QEventLoop
+)
 
 class Application(QMainWindow):
     """
@@ -31,12 +37,41 @@ class Application(QMainWindow):
     """
 
     def __init__(self):
+        
         super(Application, self).__init__()
 
-        #load settings
+        #load logo splashscreen
+        self.splash_screen = SplashScreen()
+        self.splash_screen.setWindowModality(Qt.ApplicationModal)
+        #self.splash_screen.setDisabled(True)
+        self.splash_screen.show()
+        self.hide()
+        QtWidgets.QApplication.processEvents() 
+
+        #load settings in separate thread
+        self.threads = QThread(self)
+
+        self.launch_worker = Settings()
+        self.launch_worker.moveToThread(self.threads)
+        self.launch_worker.root_being_explored.connect(self.splash_screen.set_root_description_text)
+        self.launch_worker.latest_nuke.connect(self.splash_screen.set_nuke_version_description)
+        self.launch_worker.finished_launch.connect(self.continue_construction)
+        self.threads.started.connect(self.launch_worker.launch)
+        self.threads.start()
+
+    
+    def continue_construction(self):
+        self.splash_screen.deal_with_end()
+        QtWidgets.QApplication.processEvents() 
+        time.sleep(1.5)
+        self.show()
+        self.threads.quit()
         self.settings = Settings()
-        self.settings.load_settings()
         
+        #hide logo once settings are done loading
+        self.splash_screen.hide()
+        QtWidgets.QApplication.processEvents() 
+
         #Window set
         self.resize(900, 450)
         self.setMaximumSize(1920, 1080)
@@ -68,18 +103,7 @@ class Application(QMainWindow):
         toolbar.setMovable(False)
         self.addToolBar(Qt.TopToolBarArea, toolbar)
 
-        """
-        self.dialog = QDialog(self)
-        self.dialog.setWindowTitle("Preferences")             
-        self.pref_widget = PreferencesTab(self.settings)
-        layout = QVBoxLayout()
-        layout.addWidget(self.pref_widget)
-        self.dialog.setLayout(layout)
-        self.dialog.setModal(True)
-        self.dialog.setWindowFlags(self.dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowCloseButtonHint)      
-        """
-        
+
 
     def closeEvent(self, event):
         """This method ends the events, it does not save any settings
@@ -87,10 +111,11 @@ class Application(QMainWindow):
         Args:
             event: The event passed into the method
         """
-        pyside_settings = QtCore.QSettings("Andrew Owen", "BNRQ")
+        user = self.settings.get_user()
+        pyside_settings = QtCore.QSettings(user, "BNRQ")
         pyside_settings.clear()
 
-        #self.settings.remove_appdata_contents()
+        self.settings.remove_appdata_contents()
         super().closeEvent(event)
         
     

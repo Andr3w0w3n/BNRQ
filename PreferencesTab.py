@@ -231,6 +231,7 @@ class PreferencesTab(QDialog):
             error_box.setIcon(QMessageBox.critical)
             error_box.setText("No Nuke path found!")
             error_box.exec()
+            self.nuke_exe_edit.setText("")
         self.threads.quit()
         #self.loading_dialog.hide()
         #self.loading_label.hide()
