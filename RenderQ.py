@@ -115,7 +115,7 @@ class Application(QMainWindow):
         pyside_settings = QtCore.QSettings(user, "BNRQ")
         pyside_settings.clear()
 
-        self.settings.remove_appdata_contents()
+        #self.settings.remove_appdata_contents()
         super().closeEvent(event)
         
     

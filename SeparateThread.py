@@ -31,7 +31,7 @@ class SeparateThread(QObject):
             
     def __init__(self):
         super().__init__()
-        self.settings = Settings(True)
+        self.settings = Settings()
         self.settings.load_settings()
         self.error_obj = ErrorCodes()
         self.stop_flag = False

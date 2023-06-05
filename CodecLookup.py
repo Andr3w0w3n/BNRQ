@@ -13,10 +13,10 @@ class FourCCTranslator():
 
 
     def get_codec(self, key):
-        if self.json_fcc[key] is None:
-            return "<i>UNKNOWN CODEC</i>"
-        return self.json_fcc[key]
-
+        if key in self.json_fcc:
+            return self.json_fcc[key]
+        return "<i>UNKNOWN CODEC</i>"
+        
 
     #need to re-do these methods
     def remove_codec(self, key):

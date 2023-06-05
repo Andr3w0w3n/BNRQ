@@ -21,6 +21,7 @@ class Settings(QtCore.QSettings):
     root_being_explored = Signal(str)
     latest_nuke = Signal(str)
     finished_launch = Signal()
+    loaded_nuke = Signal(str)
 
 
     def __init__(self):
@@ -106,7 +107,7 @@ class Settings(QtCore.QSettings):
 
 
     def launch(self):
-        skip_json = True
+        skip_json = False #Switch this to True if you want to skip the json no matter what
 
         if not os.path.exists(self.render_queue_folder) and not os.path.exists(self.json_settings_filepath):
             os.makedirs(self.render_queue_folder, exist_ok=True)
@@ -117,6 +118,8 @@ class Settings(QtCore.QSettings):
         
         if self.nuke_exe is None:
             self.get_default_nuke_path()
+        else:
+            self.latest_nuke.emit(os.path.splitext(os.path.basename(self.nuke_exe))[0])
         self.save_settings()
         self.finished_launch.emit()
 

@@ -9,7 +9,7 @@ class ErrorCodes():
 
     def __init__(self):    
         super().__init__()
-        self.settings = Settings(True)
+        self.settings = Settings()
         self.settings.load_settings()
 
         self.error_codes = {

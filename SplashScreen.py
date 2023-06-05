@@ -100,13 +100,14 @@ class SplashScreen(QSplashScreen):
 
     
     def set_nuke_version_description(self, nuke_v_text):
-        self.nuke_v_found.setText(f"Found nuke version {nuke_v_text}")
+        self.nuke_v_found.setText(f"Using Nuke version {nuke_v_text}")
         QtWidgets.QApplication.processEvents()
 
     
     def deal_with_end(self):
         self.details.hide()
     
+
     def mousePressEvent(self, event):
         # disable default "click-to-dismiss" behaviour
         pass

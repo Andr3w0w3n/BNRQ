@@ -38,7 +38,7 @@ class PreferencesTab(QDialog):
         self.settings = settings
 
         #loading GIF
-        """
+        
         self.loading_label = QLabel()
         self.loading_gif = QMovie("./Assets/FolderLoading.gif")
         self.loading_label.setMovie(self.loading_gif)
@@ -58,7 +58,7 @@ class PreferencesTab(QDialog):
         self.loading_label.setAlignment(Qt.AlignCenter)
         color = "black"
         self.loading_label.setStyleSheet("color: {};".format(color))
-        """
+        
         
         # Create the widgets for the preferences tab
         nuke_exe_label = QLabel("Nuke Executable Path:")

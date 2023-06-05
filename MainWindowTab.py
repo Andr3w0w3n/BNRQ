@@ -8,7 +8,7 @@ import pdb
 import statistics
 import re
 
-from CodecLookup import FourCCTranslator as codec_finder
+from CodecLookup import FourCCTranslator
 from SeparateThread import SeparateThread
 from ErrorCodes import ErrorCodes
 
@@ -82,7 +82,6 @@ class MainWindowTab(QWidget):
         super().__init__()
        
 
-
         self.settings = settings
         self.settings.load_settings()
         self.file_paths = []
@@ -132,6 +131,8 @@ class MainWindowTab(QWidget):
         self.clear_files.clicked.connect(self.clear_file_list)
         self.render_button.clicked.connect(self.run_render)
         self.file_list.itemSelectionChanged.connect(self.get_write_info)
+
+        self.translator = FourCCTranslator()
 
         #update timer
         self.timer = QTimer()
@@ -414,7 +415,7 @@ class MainWindowTab(QWidget):
         if "mov64_codec" in write_node:
             index = words.index("mov64_codec")
             codec_four_cc = words[index+1]
-            codec = "<br><b>Codec:</b> " + codec_finder.get_codec(codec_finder, codec_four_cc)
+            codec = "<br><b>Codec:</b> " + self.translator.get_codec(codec_four_cc)
 
         colorspace_line = f"<br><b>Colorspace:</b> {colorspace_type}" if colorspace_type else ""
         self.write_details.setText(f"<b>Output:</b> {os.path.basename(output_name)}"
