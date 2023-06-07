@@ -22,6 +22,7 @@ class Settings(QtCore.QSettings):
     latest_nuke = Signal(str)
     finished_launch = Signal()
     loaded_nuke = Signal(str)
+    json_created = Signal()
 
 
     def __init__(self):
@@ -66,6 +67,8 @@ class Settings(QtCore.QSettings):
         try:
             with open(self.json_settings_filepath, "w") as settings_file:
                 json.dump(self.settings_dict, settings_file)
+
+            self.json_created.emit()
         except (AttributeError, FileNotFoundError):
             print("Unable to save settings file")    
 

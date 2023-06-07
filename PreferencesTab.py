@@ -85,6 +85,9 @@ class PreferencesTab(QDialog):
         #self.save_button.clicked.connect(self.figure_bs_out)
         self.cancel_changes_button = QPushButton("Cancel")
         self.cancel_changes_button.clicked.connect(self.cancel_setting_changes)
+        self.del_json_file_button = QPushButton("Delete Save File")
+        self.del_json_file_button.clicked.connect(self.prompt_user_save_file_del)
+        self.del_json_file_button.setStyleSheet("background-color: red;")
         
         self.warning_label = QLabel("")
         self.warning_label.setStyleSheet("color: red; font-weight: bold;")
@@ -115,6 +118,7 @@ class PreferencesTab(QDialog):
         button_layout.addWidget(self.warning_label)
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.cancel_changes_button)
+        button_layout.addWidget(self.del_json_file_button)
         list_name_layout = QVBoxLayout
         #list_name_layout.addWidget(self.file_name_checkbox)
         
@@ -134,6 +138,8 @@ class PreferencesTab(QDialog):
         self.dialog.setWindowFlags(self.dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.dialog.setWindowFlags(self.dialog.windowFlags() | Qt.WindowCloseButtonHint)
         self.dialog.setFixedSize(750, 300)
+
+        self.settings.json_created.connect(self.enable_del_button)
     
     
     def update_nuke_path(self):
@@ -272,4 +278,18 @@ class PreferencesTab(QDialog):
         print("Nuke exe" + self.settings.nuke_exe)
         print(f"filepath: {self.settings.folder_search_start}")
         print(f"write node name: {self.settings.write_node_name}")
+
+
+    def prompt_user_save_file_del(self):
+        self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to delete the save file? \n(a new one will be created when you relaunch but no settings will be saved for relaunch)',
+                                                     QMessageBox.Yes | QMessageBox.No,
+                                                     QMessageBox.No)
+        if self.confirmation_box == QMessageBox.Yes:
+            self.settings.remove_appdata_contents()
+            self.del_json_file_button.setEnabled(False)
+    
+
+    def enable_del_button(self):
+        self.del_json_file_button.setEnabled(True)
+
         
