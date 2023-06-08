@@ -104,7 +104,6 @@ class Application(QMainWindow):
         self.addToolBar(Qt.TopToolBarArea, toolbar)
 
 
-
     def closeEvent(self, event):
         """This method ends the events, it does not save any settings
 

@@ -8,7 +8,10 @@ from Settings import Settings
 from ErrorCodes import ErrorCodes
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QThread, Signal, QObject
+from PySide6.QtCore import (
+    QThread, Signal, QObject, QFileSystemWatcher, QDir, QStandardPaths, QFileInfo,
+    QFile, QXmlStreamReader
+)
 from PySide6.QtWidgets import QMessageBox
 
 class SeparateThread(QObject):
@@ -35,6 +38,20 @@ class SeparateThread(QObject):
         self.settings.load_settings()
         self.error_obj = ErrorCodes()
         self.stop_flag = False
+
+        data_dir = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
+        self.render_queue_folder = os.path.join(data_dir, "BNRQ")
+        self.temp_folder = os.path.join(data_dir, "Temp")
+        if not QDir(self.temp_folder).exists():
+            QDir().mkpath(self.temp_folder)
+        
+
+        self.directory = QDir(self.temp_folder)
+        self.watcher = QFileSystemWatcher()
+        self.watcher.addPath(self.directory.absolutePath())
+        self.file_change_count = 0
+        self.watcher.directoryChanged.connect(self.handle_new_info_file)
+        self.watcher.fileChanged.connect(self.file_changed)
 
 
     def get_latest_nuke_path(self):
@@ -130,6 +147,49 @@ class SeparateThread(QObject):
         #stderr = proc.communicate()[1]
         #output = str(stderr.decode("utf-8"))
         return exit_code  
+
+
+    #opening 1 instance of nuke and open scripts from there render method
+    def render_script_list(self, file_paths):
+
+        try:
+            self.py_render_script = os.path.join(sys._MEIPASS, "RenderScriptList.py")
+        except AttributeError:
+            self.py_render_script = "./RenderScriptList.py"
+
+        print(self.settings.nuke_exe)
+        cmd = [self.settings.nuke_exe,
+                '-ti',
+                "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
+                *file_paths,
+                self.settings.write_node_name
+                ]
+        print(cmd)
+        proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
+        exit_code = proc.returncode
+        return exit_code  
+
+
+    def handle_new_info_file(self):
+        self.files = self.directory.entryList()
+        for file in self.files:
+            file_info = QFileInfo(file)
+            if file_info.suffix.lower() == "xml":
+                if file.open(QFile.ReadOnly | QFile.Text):
+                    reader = QXmlStreamReader(file)
+
+                    while not reader.atEnd():
+                        reader.readNext()
+
+
+    def file_changed(self):
+        if self.file_change_count == 9:
+            self.handle_new_info_file()
+            self.file_change_count += 1
+        elif self.file_change_count == 10:
+            self.file_change_count = 0
+        else:
+            self.file_change_count += 1
 
     def stop(self):
         self.stop_flag = True

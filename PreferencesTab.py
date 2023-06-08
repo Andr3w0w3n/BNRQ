@@ -118,10 +118,17 @@ class PreferencesTab(QDialog):
         button_layout.addWidget(self.warning_label)
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.cancel_changes_button)
-        button_layout.addWidget(self.del_json_file_button)
+        
         list_name_layout = QVBoxLayout
         #list_name_layout.addWidget(self.file_name_checkbox)
         
+        danger_zone_text = QLabel("DANGER ZONE")
+        danger_zone_text.setStyleSheet("color: red; font-weight: bold;")
+        danger_zone_text.setAlignment(Qt.AlignHCenter)
+        danger_zone_layout = QVBoxLayout()
+        danger_zone_layout.addWidget(self.del_json_file_button)
+        danger_zone_layout.setAlignment(Qt.AlignHCenter)
+
         # Add the layouts to the preferences tab
         vbox = QVBoxLayout()
         vbox.addLayout(nuke_exe_layout)
@@ -129,6 +136,9 @@ class PreferencesTab(QDialog):
         vbox.addLayout(write_node_layout)
         vbox.addWidget(self.file_name_checkbox)
         vbox.addLayout(button_layout)
+        vbox.addWidget(danger_zone_text)
+        vbox.addLayout(danger_zone_layout)
+        vbox.addStretch(0)
         self.setLayout(vbox)
 
         self.dialog = QDialog(self)
@@ -252,6 +262,7 @@ class PreferencesTab(QDialog):
             self.search_start_edit.setText(self.settings.folder_search_start)
             self.nuke_exe_edit.setText(self.settings.nuke_exe)
             self.write_node_edit.setText(self.settings.write_node_name)
+            self.file_name_checkbox.setChecked(True if (isinstance(self.settings.full_filepath_name, str) and self.settings.full_filepath_name == "true") or self.settings.full_filepath_name == True else False) 
             self.disable_save_buttons()
             
             
@@ -287,6 +298,7 @@ class PreferencesTab(QDialog):
         if self.confirmation_box == QMessageBox.Yes:
             self.settings.remove_appdata_contents()
             self.del_json_file_button.setEnabled(False)
+            self.del_json_file_button.setStyleSheet("background-color: grey;")
     
 
     def enable_del_button(self):

@@ -196,3 +196,4 @@ class Settings(QtCore.QSettings):
         data_dir = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
         self.render_queue_folder = os.path.join(data_dir, "BNRQ")
         self.json_settings_filepath = os.path.join(self.render_queue_folder, "settings.json")
+        print(self.json_settings_filepath)
