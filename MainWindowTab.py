@@ -156,7 +156,7 @@ class MainWindowTab(QWidget):
                                                              \nDo you still wish to add it?',
                                                              QMessageBox.Yes | QMessageBox.No,
                                                              QMessageBox.No)
-                self.add_confirmation_box.setIcon(QMessageBox.critical)
+                self.add_confirmation_box.setStandardIcon(QMessageBox.Critical)
 
                 if self.add_confirmation_box == QMessageBox.Yes:
                     self.file_paths.append(file_path)
@@ -269,9 +269,13 @@ class MainWindowTab(QWidget):
         
         self.nuke_render_worker = SeparateThread()
         self.nuke_render_worker.moveToThread(self.work_threads)
-        self.work_threads.started.connect(partial(self.nuke_render_worker.render_list, self.file_paths))
+        if self.settings.render_nuke_open:
+            self.work_threads.started.connect(partial(self.nuke_render_worker.render_script_list, self.file_paths))
+        else:
+            self.work_threads.started.connect(partial(self.nuke_render_worker.render_list, self.file_paths))
         self.nuke_render_worker.render_script_update.connect(self.handle_render_update)
         self.nuke_render_worker.render_done.connect(self.handle_render_finish)
+        self.progress_dialog.canceled.connect(self.nuke_render_worker.stop)
         self.work_threads.start()
 
 

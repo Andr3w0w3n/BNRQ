@@ -36,6 +36,8 @@ class ErrorCodes():
         return self.error_codes[output]
     
     def check_error_codes(self, code):
-        if code in self.error_codes:
+        if code is None:
+            return False
+        elif code in self.error_codes:
             return True
         return False

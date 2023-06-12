@@ -1,7 +1,7 @@
 import nuke
 import sys
 import os
-import xml
+import xml.etree.ElementTree as ET
 import time
 
 #not needed as of yet, but imported just in case
@@ -88,26 +88,35 @@ def render_script(wn):
         sys.exit(EXIT_RENDER_ERROR)
 
 
-def main(file_paths, nuke_script = nuke.Root(), write_node_name = "Write1"):
+def main(file_paths, xml_filepath, write_node_name = "Write1"):
 
     #setting the logging [not being used]
     #logging.basicConfig(level = logging.ERROR)
     
-    data_dir = os.getenv('APPDATA')
-    app_dir = os.path.join(data_dir, sys.argv[0])
-    temp_folder = os.path.join(app_dir, "Temp")
 
     #This progress task is a lot more complicated than it seems. I will have to create a new object for it
     #For now, just write an xml file at the end of each script
     #nuke.addProgressTask(render_info)
+    xml_root = ET.Element("Script")
+    xml_script_info = ET.SubElement(xml_root, "Info")
     
     for script in file_paths:
         start_time = time.time()
+        xml_script_info.attrib["name"] = script
         nuke.scriptOpen(script)
         write_node = find_write_node(write_node_name)
         
         render_script(write_node)
         nuke.scriptClose(script)
+        xml_script_info.attrib["execute_time"] = str(time.time() - start_time)
+        indiv_script_tree = ET.ElementTree(xml_root)
+        print(f"XML Filepath: {xml_filepath}")
+        try:
+            indiv_script_tree.write(xml_filepath)
+        except Exception as e:
+            print(f"Error writing xml: {e}")
+
+    nuke.scriptExit()
     
 
     sys.exit(0)
@@ -136,5 +145,7 @@ if __name__ == "__main__":
     file_paths = []
     for path in sys.argv[1:-1]:
         file_paths.append(path)
-    write_node_name_arg = sys.argv[-1]
-    main(file_paths, write_node_name_arg)
+    print(f"File path list: {file_paths}")
+    write_node_name_arg = sys.argv[-2]
+    xml_filepath = sys.argv[-1]
+    main(file_paths, xml_filepath, write_node_name_arg)

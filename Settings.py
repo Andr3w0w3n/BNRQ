@@ -39,6 +39,7 @@ class Settings(QtCore.QSettings):
         self.folder_search_start = "C:\\Users\\"
         self.write_node_name = "Write1"
         self.full_filepath_name = True
+        self.render_nuke_open = True
 
         self.load_settings()
 
@@ -51,12 +52,14 @@ class Settings(QtCore.QSettings):
                 self.folder_search_start = json_settings.get("search_start", self.folder_search_start)
                 self.write_node_name = json_settings.get("write_name", self.write_node_name)
                 self.full_filepath_name = json_settings["full_filepath_name"]
+                print("Json settings filepath: " + self.json_settings_filepath)
                 
         except (AttributeError, FileNotFoundError):
             print("Unable to load settings file")
 
 
     def save_settings_to_json(self):
+        
         self.settings_dict = {
             "exe": self.nuke_exe,
             "search_start": self.folder_search_start,
@@ -193,7 +196,9 @@ class Settings(QtCore.QSettings):
     
 
     def assign_json_paths(self):
-        data_dir = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
+        data_dir = os.getenv('APPDATA')
         self.render_queue_folder = os.path.join(data_dir, "BNRQ")
+        self.render_queue_folder = r"C:\Users\User\Desktop\BNRQ"
         self.json_settings_filepath = os.path.join(self.render_queue_folder, "settings.json")
-        print(self.json_settings_filepath)
+        if not os.path.exists(self.render_queue_folder):
+            os.mkdir(self.render_queue_folder)
