@@ -39,7 +39,7 @@ class Settings(QtCore.QSettings):
         self.folder_search_start = "C:\\Users\\"
         self.write_node_name = "Write1"
         self.full_filepath_name = True
-        self.render_nuke_open = True
+        self.render_nuke_open = False
 
         self.load_settings()
 
@@ -51,9 +51,24 @@ class Settings(QtCore.QSettings):
                 self.nuke_exe = json_settings.get("exe", self.nuke_exe)
                 self.folder_search_start = json_settings.get("search_start", self.folder_search_start)
                 self.write_node_name = json_settings.get("write_name", self.write_node_name)
-                self.full_filepath_name = json_settings["full_filepath_name"]
-                print("Json settings filepath: " + self.json_settings_filepath)
-                
+                self.full_filepath_name = json_settings.get("full_filepath_name", self.full_filepath_name)
+                self.render_nuke_open = json_settings.get("render_nuke_open", self.render_nuke_open)
+            
+            #catch any true/false coming back as strings
+            if isinstance(self.full_filepath_name, str) and self.full_filepath_name.lower() == "true":
+                self.full_filepath_name = True
+            elif isinstance(self.full_filepath_name, str) and self.full_filepath_name.lower() == "false":
+                self.full_filepath_name = False
+            elif isinstance(self.full_filepath_name, str):
+                self.full_filepath_name = False
+
+            if isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "true":
+                self.render_nuke_open = True
+            elif isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "false":
+                self.render_nuke_open = False
+            elif isinstance(self.render_nuke_open, str):
+                self.render_nuke_open = False
+
         except (AttributeError, FileNotFoundError):
             print("Unable to load settings file")
 
@@ -64,7 +79,8 @@ class Settings(QtCore.QSettings):
             "exe": self.nuke_exe,
             "search_start": self.folder_search_start,
             "write_name": self.write_node_name,
-            "full_filepath_name": self.full_filepath_name
+            "full_filepath_name": self.full_filepath_name,
+            "render_nuke_open": self.render_nuke_open
         }
 
         try:
@@ -92,6 +108,24 @@ class Settings(QtCore.QSettings):
         self.full_filepath_name = settings.value("full_filepath_name", self.full_filepath_name)
         settings.endGroup()
 
+        settings.beginGroup("Performance")
+        self.render_nuke_open = settings.value("render_nuke_open", self.render_nuke_open)
+        settings.endGroup()
+
+        if isinstance(self.full_filepath_name, str) and self.full_filepath_name.lower() == "true":
+            self.full_filepath_name = True
+        elif isinstance(self.full_filepath_name, str) and self.full_filepath_name.lower() == "false":
+            self.full_filepath_name = False
+        elif isinstance(self.full_filepath_name, str):
+            self.full_filepath_name = False
+
+        if isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "true":
+            self.render_nuke_open = True
+        elif isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "false":
+            self.render_nuke_open = False
+        elif isinstance(self.render_nuke_open, str):
+            self.render_nuke_open = False
+
 
     def save_settings(self):
 
@@ -107,6 +141,10 @@ class Settings(QtCore.QSettings):
 
         settings.beginGroup("UI Look")
         settings.setValue("full_filepath_name", self.full_filepath_name)
+        settings.endGroup()
+
+        settings.beginGroup("Performance")
+        settings.setValue("render_nuke_open", self.render_nuke_open)
         settings.endGroup()
         
         self.save_settings_to_json()
@@ -191,6 +229,14 @@ class Settings(QtCore.QSettings):
         shutil.rmtree(self.render_queue_folder)
 
     
+    def remove_temp_files(self):
+        files = os.listdir(self.temp_folder)
+        for file in files:
+            file_path = os.path.join(self.temp_folder, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+
+
     def get_user(self):
         return self.username
     

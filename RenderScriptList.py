@@ -102,7 +102,6 @@ def main(file_paths, xml_filepath, write_node_name = "Write1"):
     
     for script in file_paths:
         start_time = time.time()
-        time.sleep(1)
         xml_script_info.attrib["name"] = script
         nuke.scriptOpen(script)
         write_node = find_write_node(write_node_name)
@@ -146,7 +145,7 @@ if __name__ == "__main__":
             sys.exit(EXIT_NO_SCRIPT)
     nuke_script_arg = sys.argv[1]
     file_paths = []
-    for path in sys.argv[1:-1]:
+    for path in sys.argv[1:-2]:
         file_paths.append(path)
     print(f"File path list: {file_paths}")
     write_node_name_arg = sys.argv[-2]

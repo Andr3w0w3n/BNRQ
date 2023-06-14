@@ -41,6 +41,8 @@ class SeparateThread(QObject):
         self.error_obj = ErrorCodes()
         self.stop_flag = False
 
+        self.external_error_code = None
+
         data_dir = os.getenv('APPDATA')
         self.render_queue_folder = os.path.join(data_dir, "BNRQ")
         self.render_queue_folder = self.settings.render_queue_folder
@@ -113,8 +115,8 @@ class SeparateThread(QObject):
             if self.stop_flag:
                 return        
             start_time = time.time()
-            output = self.render_nuke_script(script)
-            self.render_script_update.emit(script, output, time.time()-start_time)
+            self.external_error_code = self.render_nuke_script(script)
+            self.render_script_update.emit(script, self.external_error_code, time.time()-start_time)
             time.sleep(1) #this is to give time for the GUI to tell the thread to stop
 
         self.render_done.emit()
@@ -131,14 +133,17 @@ class SeparateThread(QObject):
             str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
         """
         #this line is to make sure the packaged executable is able to keep RenderScript.py for use
-        
+
+        """self.external_render_process = QProcess()
+        self.external_render_process.readyReadStandardOutput.connect(self.handle_external_output)
+        self.external_render_process.finished.connect(self.handle_external_finish)
+        self.external_render_process.errorOccurred.connect(self.handle_error)""" 
         
         try:
             self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
         except AttributeError:
             self.py_render_script = "./RenderScript.py"
 
-        print(self.settings.nuke_exe)
         cmd = [self.settings.nuke_exe,
                 '-ti',
                 "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
@@ -147,26 +152,26 @@ class SeparateThread(QObject):
                 self.settings.write_node_name,
                 ]
         print(cmd)
+        #self.external_render_process.start(cmd[0], cmd[1:])
         proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate()
         exit_code = proc.returncode
         #stderr = proc.communicate()[1]
         #output = str(stderr.decode("utf-8"))
-        return exit_code  
+        return exit_code
 
 
     #opening 1 instance of nuke and open scripts from there render method
     def render_script_list(self, file_paths):
-        
         try:
             self.py_render_script = os.path.join(sys._MEIPASS, "RenderScriptList.py")
         except AttributeError:
             self.py_render_script = "./RenderScriptList.py"
 
-        self.enternal_render_process = QProcess()
-        self.enternal_render_process.readyReadStandardOutput.connect(self.handle_output)
-        self.enternal_render_process.finished.connect(self.handle_finish)
-        self.enternal_render_process.errorOccurred.connect(self.handle_error)
+        self.internal_render_process = QProcess()
+        self.internal_render_process.readyReadStandardOutput.connect(self.handle_internal_output)
+        self.internal_render_process.finished.connect(self.handle_internal_finish)
+        self.internal_render_process.errorOccurred.connect(self.handle_error)
 
         cmd = [self.settings.nuke_exe,
                 '-ti',
@@ -177,7 +182,7 @@ class SeparateThread(QObject):
                 self.xml_filepath
                 ]
         print(cmd)
-        self.enternal_render_process.start(cmd[0], cmd[1:])
+        self.internal_render_process.start(cmd[0], cmd[1:])
         #proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
 
         """while proc.poll() is None and not self.stop_flag:
@@ -191,16 +196,34 @@ class SeparateThread(QObject):
             self.render_stopped.emit(proc.returncode if not None else None)"""
     
     
-    def handle_output(self):
+    def handle_internal_output(self):
         #TODO, do something with this output???
-        output = self.enternal_render_process.readAllStandardOutput()
+        output = self.internal_render_process.readAllStandardOutput()
 
-    def handle_finish(self, exit_code, exit_status):
+
+    def handle_internal_finish(self, exit_code, exit_status):
         if self.stop_flag:
-            self.enternal_render_process.terminate()
+            self.internal_render_process.terminate()
             self.render_stopped.emit(exit_code if exit_status == QProcess.NormalExit else None)
         else:
+            self.internal_render_process.close()
             self.render_done.emit()
+
+    
+    def handle_external_output(self):
+        #TODO, do something with this output???
+        output = self.external_render_process.readAllStandardOutput()
+
+
+    def handle_external_finish(self, exit_code, exit_status):
+        if self.stop_flag:
+            self.external_render_process.terminate()
+            self.external_error_code = exit_code if exit_status == QProcess.NormalExit else None
+        else:
+            #self.external_error_code = exit_code
+            self.external_error_code = None
+            self.external_render_process.close()
+
 
     def handle_error(self, error):
         #TODO, fill out these error modules
@@ -210,7 +233,8 @@ class SeparateThread(QObject):
             pass
         elif error == QProcess.Crashed:
             # Handle the case where the process crashes
-            print("Process crasehd")
+            print("Process crashed")
+            print(self.external_render_process.readAllStandardError())
             pass
         elif error == QProcess.Timedout:
             # Handle the case where the process times out

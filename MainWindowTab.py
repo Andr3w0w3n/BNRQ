@@ -207,12 +207,6 @@ class MainWindowTab(QWidget):
         """
         self.file_list.clear()
 
-        #continue to catch if the true/false for some reason still is a string (not sure why it would be able this point tho)
-        if isinstance(self.full_filepath_name, str) and self.full_filepath_name == "true":
-            self.full_filepath_name = True
-        elif isinstance(self.full_filepath_name, str) and self.full_filepath_name == "false":
-            self.full_filepath_name = False
-
         if self.full_filepath_name:
                 self.file_list.addItems(self.file_paths)         
         else:
@@ -272,6 +266,8 @@ class MainWindowTab(QWidget):
             QtWidgets.QMessageBox.warning(self, "Warning", "There are no files in the queue!")
             return
         
+        self.remove_temp_files()
+
         self.work_threads = QThread(self)
         self.total_script_count = len(self.file_paths)
         self.render_times = []
@@ -290,6 +286,12 @@ class MainWindowTab(QWidget):
         
         self.nuke_render_worker = SeparateThread()
         self.nuke_render_worker.moveToThread(self.work_threads)
+
+        """if isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "true":
+            self.settings.render_nuke_open = True
+        elif isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "false":
+            self.settings.render_nuke_open = False"""
+
         if self.settings.render_nuke_open:
             self.work_threads.started.connect(partial(self.nuke_render_worker.render_script_list, self.file_paths))
         else:
@@ -302,7 +304,6 @@ class MainWindowTab(QWidget):
 
 
     def handle_render_update(self, script, exit_code, elapsed_time):
-        print(f"If statement check: {self.error_obj.check_error_codes(exit_code)}")
         if self.error_obj.check_error_codes(exit_code):
             #self.nuke_render_worker.quit_rt()
             self.work_threads.terminate()
@@ -314,7 +315,11 @@ class MainWindowTab(QWidget):
             QtWidgets.QApplication.processEvents()
             self.handle_render_finish()
         else:
-            render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
+            render_item = None
+            if self.full_filepath_name:
+                render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
+            else:
+                render_item = self.file_list.findItems(os.path.basename(script), QtCore.Qt.MatchExactly)
             self.file_paths.remove(script)
             self.file_list.takeItem(self.file_list.row(render_item[0]))
             self.progress += 1
@@ -331,7 +336,6 @@ class MainWindowTab(QWidget):
         #making double sure
         self.clear_file_list()
         self.progress_dialog.close()
-        self.remove_temp_files()
           
 
     def get_estimated_time(self, render_times, items_left):
@@ -467,25 +471,24 @@ class MainWindowTab(QWidget):
             if file == "." or file == "..":
                 continue
             file_path = os.path.join(self.directory.absolutePath(), file)
-            print(f"File: {file}")
-            print(f"File path: {file_path}")
             #file_info = QFileInfo(file_path)
             if file_path.lower().endswith(".xml"):
                 qfile = QFile(file_path)
                 if qfile.open(QFile.ReadOnly | QFile.Text):
-                    reader = QXmlStreamReader(file)
+                    reader = QXmlStreamReader(qfile)
 
                     while not reader.atEnd():
                         reader.readNext()
-
                         if reader.isStartElement() and reader.name() == "Script":
                             if reader.readNextStartElement() and reader.name() == "Info":
-                                script = reader.attributes().value("name")
-                                execute_time = float(reader.attributes().value("execute_time"))
+                                attributes = reader.attributes()
+                                script = attributes.value("name")
+                                execute_time = float(attributes.value("execute_time"))
+                                print(f"Script: {script}")
+                                print(f"Execute Time: {execute_time}")
                                 self.handle_render_update(script, None, execute_time)
-                                time.sleep(1)
 
-                qfile.close()
+                    qfile.close()
 
 
     def file_changed(self):

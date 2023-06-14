@@ -76,9 +76,23 @@ class PreferencesTab(QDialog):
         write_node_label = QLabel("Write Node Name:")
         self.write_node_edit = QLineEdit(self.settings.write_node_name)
 
+        #have to use isinstance as sometimes the settings return as a string from the json
         self.file_name_checkbox = QCheckBox("Full Path Filenames")
-        self.file_name_checkbox.setChecked(True if (isinstance(self.settings.full_filepath_name, str) and self.settings.full_filepath_name == "true") or self.settings.full_filepath_name == True else False) 
+        self.file_name_checkbox.setChecked(
+            True if (isinstance(self.settings.full_filepath_name, str) and self.settings.full_filepath_name == "true") 
+                or 
+                self.settings.full_filepath_name == True 
+            else False
+        ) 
         #self.file_name_checkbox.setChecked(self.settings.full_filepath_name.lower())
+
+        self.render_nuke_open_checkbox = QCheckBox("Render without closing Nuke (Beta)")
+        self.render_nuke_open_checkbox.setChecked(
+            True if (isinstance(self.settings.render_nuke_open, str) and self.settings.render_nuke_open == "true") 
+                or 
+                self.settings.render_nuke_open == True 
+            else False
+        )
         
         self.save_button = QPushButton("Save")
         self.save_button.clicked.connect(self.save_button_clicked)
@@ -99,6 +113,7 @@ class PreferencesTab(QDialog):
         self.nuke_exe_edit.textChanged.connect(self.settings_changed)
         self.search_start_edit.textChanged.connect(self.settings_changed)
         self.file_name_checkbox.stateChanged.connect(self.settings_changed)
+        self.render_nuke_open_checkbox.stateChanged.connect(self.settings_changed)
 
         # Add the widgets to layouts
         nuke_exe_layout = QHBoxLayout()
@@ -135,6 +150,7 @@ class PreferencesTab(QDialog):
         vbox.addLayout(search_start_layout)
         vbox.addLayout(write_node_layout)
         vbox.addWidget(self.file_name_checkbox)
+        vbox.addWidget(self.render_nuke_open_checkbox)
         vbox.addLayout(button_layout)
         vbox.addWidget(danger_zone_text)
         vbox.addLayout(danger_zone_layout)
@@ -201,6 +217,7 @@ class PreferencesTab(QDialog):
         self.settings.nuke_exe = self.nuke_exe_edit.text()
         self.settings.folder_search_start = self.search_start_edit.text()
         self.settings.full_filepath_name = self.file_name_checkbox.isChecked()
+        self.settings.render_nuke_open = self.render_nuke_open_checkbox.isChecked()
         self.settings.save_settings()
 
         self.disable_save_buttons()
@@ -262,7 +279,13 @@ class PreferencesTab(QDialog):
             self.search_start_edit.setText(self.settings.folder_search_start)
             self.nuke_exe_edit.setText(self.settings.nuke_exe)
             self.write_node_edit.setText(self.settings.write_node_name)
-            self.file_name_checkbox.setChecked(True if (isinstance(self.settings.full_filepath_name, str) and self.settings.full_filepath_name == "true") or self.settings.full_filepath_name == True else False) 
+            self.file_name_checkbox.setChecked(True if (isinstance(self.settings.full_filepath_name, str) and self.settings.full_filepath_name == "true") or self.settings.full_filepath_name == True else False)
+            self.render_nuke_open_checkbox.setChecked(
+                True if (isinstance(self.settings.render_nuke_open, str) and self.settings.render_nuke_open == "true") 
+                    or 
+                    self.settings.render_nuke_open == True 
+                else False
+            )
             self.disable_save_buttons()
             
             
@@ -285,13 +308,18 @@ class PreferencesTab(QDialog):
             self.warning_label.setText("")
 
 
-    def figure_bs_out(self):
-        print("Nuke exe" + self.settings.nuke_exe)
-        print(f"filepath: {self.settings.folder_search_start}")
-        print(f"write node name: {self.settings.write_node_name}")
-
-
     def prompt_user_save_file_del(self):
+        self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to delete the save file? \n(a new one will be created when you relaunch but no settings will be saved for relaunch)',
+                                                     QMessageBox.Yes | QMessageBox.No,
+                                                     QMessageBox.No)
+        if self.confirmation_box == QMessageBox.Yes:
+            self.settings.remove_appdata_contents()
+            self.del_json_file_button.setEnabled(False)
+            self.del_json_file_button.setStyleSheet("background-color: grey;")
+
+
+    def prompt_user_temp_file_del(self):
+        #TODO, finish this method to allow user to delete temp data files
         self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to delete the save file? \n(a new one will be created when you relaunch but no settings will be saved for relaunch)',
                                                      QMessageBox.Yes | QMessageBox.No,
                                                      QMessageBox.No)
