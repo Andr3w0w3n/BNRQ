@@ -10,7 +10,7 @@ from ErrorCodes import ErrorCodes
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import (
     QThread, Signal, QObject, QFileSystemWatcher, QDir, QStandardPaths, QFileInfo,
-    QFile, QXmlStreamReader
+    QFile, QXmlStreamReader, QFileSystemWatcher, QTimer, QProcess
 )
 from PySide6.QtWidgets import QMessageBox
 
@@ -29,7 +29,9 @@ class SeparateThread(QObject):
     """
     nuke_path_ready = Signal(str)
     render_script_update = Signal(str, int, float)
+    render_stopped = Signal(int)
     render_done = Signal()
+    update_gui = Signal()
 
             
     def __init__(self):
@@ -39,19 +41,21 @@ class SeparateThread(QObject):
         self.error_obj = ErrorCodes()
         self.stop_flag = False
 
-        data_dir = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
+        data_dir = os.getenv('APPDATA')
         self.render_queue_folder = os.path.join(data_dir, "BNRQ")
-        self.temp_folder = os.path.join(data_dir, "Temp")
+        self.render_queue_folder = self.settings.render_queue_folder
+        self.temp_folder = os.path.join(self.render_queue_folder, "Temp")
+        self.xml_filepath = os.path.join(self.temp_folder, "CurrentRenderScriptInfo.xml")
+        
+        
         if not QDir(self.temp_folder).exists():
             QDir().mkpath(self.temp_folder)
-        
+        elif os.path.exists(self.xml_filepath):
+            os.remove(self.xml_filepath)
 
-        self.directory = QDir(self.temp_folder)
-        self.watcher = QFileSystemWatcher()
-        self.watcher.addPath(self.directory.absolutePath())
-        self.file_change_count = 0
-        self.watcher.directoryChanged.connect(self.handle_new_info_file)
-        self.watcher.fileChanged.connect(self.file_changed)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.emit_update)
+        self.timer.start(500)
 
 
     def get_latest_nuke_path(self):
@@ -127,6 +131,8 @@ class SeparateThread(QObject):
             str: it returns the exit code as a string (not bit) so that it can be read and interpreted 
         """
         #this line is to make sure the packaged executable is able to keep RenderScript.py for use
+        
+        
         try:
             self.py_render_script = os.path.join(sys._MEIPASS, "RenderScript.py")
         except AttributeError:
@@ -138,7 +144,7 @@ class SeparateThread(QObject):
                 "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
                 self.py_render_script,
                 nuke_script_path,
-                self.settings.write_node_name
+                self.settings.write_node_name,
                 ]
         print(cmd)
         proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
@@ -151,45 +157,70 @@ class SeparateThread(QObject):
 
     #opening 1 instance of nuke and open scripts from there render method
     def render_script_list(self, file_paths):
-
+        
         try:
             self.py_render_script = os.path.join(sys._MEIPASS, "RenderScriptList.py")
         except AttributeError:
             self.py_render_script = "./RenderScriptList.py"
 
-        print(self.settings.nuke_exe)
+        self.enternal_render_process = QProcess()
+        self.enternal_render_process.readyReadStandardOutput.connect(self.handle_output)
+        self.enternal_render_process.finished.connect(self.handle_finish)
+        self.enternal_render_process.errorOccurred.connect(self.handle_error)
+
         cmd = [self.settings.nuke_exe,
                 '-ti',
                 "-V", "2", #this is verbose mode, level 2, https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/command_line_operations.html
+                self.py_render_script,
                 *file_paths,
-                self.settings.write_node_name
+                self.settings.write_node_name,
+                self.xml_filepath
                 ]
         print(cmd)
-        proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
-        exit_code = proc.returncode
-        return exit_code  
+        self.enternal_render_process.start(cmd[0], cmd[1:])
+        #proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
 
-
-    def handle_new_info_file(self):
-        self.files = self.directory.entryList()
-        for file in self.files:
-            file_info = QFileInfo(file)
-            if file_info.suffix.lower() == "xml":
-                if file.open(QFile.ReadOnly | QFile.Text):
-                    reader = QXmlStreamReader(file)
-
-                    while not reader.atEnd():
-                        reader.readNext()
-
-
-    def file_changed(self):
-        if self.file_change_count == 9:
-            self.handle_new_info_file()
-            self.file_change_count += 1
-        elif self.file_change_count == 10:
-            self.file_change_count = 0
+        """while proc.poll() is None and not self.stop_flag:
+            pass
+        
+        if not self.stop_flag:
+            exit_code = proc.returncode
+            self.render_done.emit()
         else:
-            self.file_change_count += 1
+            proc.terminate()
+            self.render_stopped.emit(proc.returncode if not None else None)"""
+    
+    
+    def handle_output(self):
+        #TODO, do something with this output???
+        output = self.enternal_render_process.readAllStandardOutput()
+
+    def handle_finish(self, exit_code, exit_status):
+        if self.stop_flag:
+            self.enternal_render_process.terminate()
+            self.render_stopped.emit(exit_code if exit_status == QProcess.NormalExit else None)
+        else:
+            self.render_done.emit()
+
+    def handle_error(self, error):
+        #TODO, fill out these error modules
+        if error == QProcess.FailedToStart:
+            # Handle the case where the process fails to start
+            print("Process failed to start")
+            pass
+        elif error == QProcess.Crashed:
+            # Handle the case where the process crashes
+            print("Process crasehd")
+            pass
+        elif error == QProcess.Timedout:
+            # Handle the case where the process times out
+            print("Process timed out")
+            pass
+
+
+    def emit_update(self):
+        self.update_gui.emit()
+
 
     def stop(self):
         self.stop_flag = True

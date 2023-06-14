@@ -102,6 +102,7 @@ def main(file_paths, xml_filepath, write_node_name = "Write1"):
     
     for script in file_paths:
         start_time = time.time()
+        time.sleep(1)
         xml_script_info.attrib["name"] = script
         nuke.scriptOpen(script)
         write_node = find_write_node(write_node_name)
@@ -110,13 +111,15 @@ def main(file_paths, xml_filepath, write_node_name = "Write1"):
         nuke.scriptClose(script)
         xml_script_info.attrib["execute_time"] = str(time.time() - start_time)
         indiv_script_tree = ET.ElementTree(xml_root)
-        print(f"XML Filepath: {xml_filepath}")
+        
         try:
             indiv_script_tree.write(xml_filepath)
         except Exception as e:
             print(f"Error writing xml: {e}")
 
-    nuke.scriptExit()
+        
+
+    #nuke.scriptExit()
     
 
     sys.exit(0)
