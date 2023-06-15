@@ -24,19 +24,15 @@ from PySide6.QtCore import(
 )
 
 class Application(QMainWindow):
-    """
-        This creates the primary window for the render queue
-    
-        Attributes:
-            settings (Settings): An instance of the `Settings` class that loads and stores application settings.
-
-        Methods:
-            __init__(): Initializes a `MainWindow` instance by setting window size, title, and layout. Also creates a
-                    QTabWidget with two tabs, one for the main render queue window and one for the preferences window.
-            closeEvent(event): Saves the application settings when the user closes the main window.
-    """
-
     def __init__(self):
+        """
+        This method sets up the application window, loads settings in a separate thread,
+        and constructs the main window with tabs.
+
+        The splash screen is displayed during the loading process and is automatically closed
+        when the settings are loaded. It has a slight pause (sleep) so the user can see which nuke version was loaded
+
+        """
         
         super(Application, self).__init__()
 
@@ -67,6 +63,7 @@ class Application(QMainWindow):
         self.show()
         self.threads.quit()
         self.settings = Settings()
+        self.settings.load_settings()
         
         #hide logo once settings are done loading
         self.splash_screen.hide()
@@ -105,10 +102,11 @@ class Application(QMainWindow):
 
 
     def closeEvent(self, event):
-        """This method ends the events, it does not save any settings
+        """This method overrides the closeEvent method to handle the event of the application window being closed.
+        It clears internal settings and performs slight clean-up before closing the application.
 
         Args:
-            event: The event passed into the method
+            event: The event passed into the method.
         """
         user = self.settings.get_user()
         pyside_settings = QtCore.QSettings(user, "BNRQ")
@@ -120,11 +118,17 @@ class Application(QMainWindow):
         
     
     def open_readme(self):
+        """
+        Open the README file under the use section, in the default browser.
+        """
         url = QUrl("https://github.com/Andr3w0w3n/BNRQ/blob/main/README.md#use")
         QtGui.QDesktopServices.openUrl(url)
 
         
     def open_pref_dialog(self):
+        """
+        Open up the preferences dialog.
+        """
         prefs = PreferencesTab(self.settings)
         prefs.finished.connect(prefs.close_prefs)
         prefs.dialog.exec()
