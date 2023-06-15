@@ -234,9 +234,10 @@ class PreferencesTab(QDialog):
         """Sets up a loading icon and then starts the task of finding the Nuke executable in 
             a separate thread.
         """
-        #self.loading_gif.start()
-        #self.loading_label.show()
-        #self.loading_label.raise_()
+        self.loading_gif.start()
+        self.loading_label.show()
+        self.loading_label.raise_()
+        self.loading_dialog.show()
         
         QCoreApplication.processEvents()
 
@@ -266,8 +267,8 @@ class PreferencesTab(QDialog):
             error_box.exec()
             self.nuke_exe_edit.setText("")
         self.threads.quit()
-        #self.loading_dialog.hide()
-        #self.loading_label.hide()
+        self.loading_dialog.hide()
+        self.loading_label.hide()
         QCoreApplication.processEvents()
        
         
@@ -320,7 +321,7 @@ class PreferencesTab(QDialog):
 
     def prompt_user_temp_file_del(self):
         #TODO, finish this method to allow user to delete temp data files
-        self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to delete the save file? \n(a new one will be created when you relaunch but no settings will be saved for relaunch)',
+        self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to delete the temp files?',
                                                      QMessageBox.Yes | QMessageBox.No,
                                                      QMessageBox.No)
         if self.confirmation_box == QMessageBox.Yes:

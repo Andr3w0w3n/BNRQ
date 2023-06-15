@@ -35,6 +35,9 @@ class Settings(QtCore.QSettings):
 
         self.assign_json_paths()
 
+        self.temp_folder = os.path.join(self.render_queue_folder, "Temp")
+        self.xml_filepath = os.path.join(self.temp_folder, "CurrentRenderScriptInfo.xml")
+
         self.nuke_exe = None
         self.folder_search_start = "C:\\Users\\"
         self.write_node_name = "Write1"
@@ -42,6 +45,8 @@ class Settings(QtCore.QSettings):
         self.render_nuke_open = False
 
         self.load_settings()
+
+
 
 
     def load_settings_from_json(self):
@@ -188,7 +193,6 @@ class Settings(QtCore.QSettings):
         max_ver = -1
 
         for root, dirs, files in os.walk("C:\\Program Files\\"):
-            #time.sleep(0.0000005) #I HATE THAT I NEED THIS, I CANNOT FIND WHY IT IS BEING OVERLOADED
             #QtWidgets.QApplication.processEvents() 
             self.root_being_explored.emit(root)
             for file in files:
@@ -221,7 +225,7 @@ class Settings(QtCore.QSettings):
 
     def remove_appdata_contents(self):
         """
-            This method removes the folder continaing files 
+            This method removes the folder contianing files 
             for the application from the appdata folder. This acts as an "uninstall"
             of sorts. It does not remove the executable however and if the executable re-launches
             then the application will make the folder again.
@@ -242,9 +246,16 @@ class Settings(QtCore.QSettings):
     
 
     def assign_json_paths(self):
-        data_dir = os.getenv('APPDATA')
+        #data_dir = os.getenv('APPDATA')
+        try:
+            data_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        except FileNotFoundError:
+            app = QCoreApplication.instance()
+            data_dir = app.applicationFilePath()
+
         self.render_queue_folder = os.path.join(data_dir, "BNRQ")
-        self.render_queue_folder = r"C:\Users\User\Desktop\BNRQ"
+        #self.render_queue_folder = r"C:\Users\User\Desktop\BNRQ"
+        
         self.json_settings_filepath = os.path.join(self.render_queue_folder, "settings.json")
         if not os.path.exists(self.render_queue_folder):
             os.mkdir(self.render_queue_folder)

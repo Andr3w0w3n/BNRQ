@@ -119,7 +119,7 @@ class MainWindowTab(QWidget):
         button_layout.addWidget(self.write_details)
         #button_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
 
-        
+       
         total_button_layout = QHBoxLayout()
         total_button_layout.addWidget(self.file_list)
         total_button_layout.addLayout(button_layout)
@@ -141,10 +141,15 @@ class MainWindowTab(QWidget):
         self.timer.start(500)
 
         #file watching stuff
-        data_dir = os.getenv('APPDATA')
-        self.render_queue_folder = os.path.join(data_dir, "BNRQ")
+        """#data_dir = os.getenv('APPDATA')
+        try:
+            data_dir = os.path.abspath(sys.argv[0])
+        except FileNotFoundError:
+            app = QCoreApplication.instance()
+            data_dir = app.applicationFilePath()
+        self.render_queue_folder = os.path.join(data_dir, "BNRQ")"""
         self.render_queue_folder = self.settings.render_queue_folder
-        self.temp_folder = os.path.join(self.render_queue_folder, "Temp")
+        self.temp_folder = self.settings.temp_folder
         self.xml_filepath = os.path.join(self.temp_folder, "CurrentRenderScriptInfo.xml")
 
         if not QDir(self.temp_folder).exists():
@@ -266,7 +271,7 @@ class MainWindowTab(QWidget):
             QtWidgets.QMessageBox.warning(self, "Warning", "There are no files in the queue!")
             return
         
-        self.remove_temp_files()
+        self.settings.remove_temp_files()
 
         self.work_threads = QThread(self)
         self.total_script_count = len(self.file_paths)
@@ -275,7 +280,7 @@ class MainWindowTab(QWidget):
 
         self.error_obj = ErrorCodes()
         
-        self.progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", "Cancel", 0, len(self.file_paths), self)
+        self.progress_dialog = QtWidgets.QProgressDialog("Rendering scripts...", None, 0, len(self.file_paths), self)
         self.progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
         self.progress_dialog.setMinimumDuration(0)
         self.progress_dialog.setRange(0,self.total_script_count)
@@ -300,6 +305,7 @@ class MainWindowTab(QWidget):
         self.nuke_render_worker.render_done.connect(self.handle_render_finish)
         self.nuke_render_worker.update_gui.connect(self.update)
         self.progress_dialog.canceled.connect(self.nuke_render_worker.stop)
+        self.nuke_render_worker.render_cancelled.connect(self.handle_render_cancelled) #this is added as a signal, maybe its not needed and just link it to the progress bar being cancelled?
         self.work_threads.start()
 
 
@@ -335,6 +341,11 @@ class MainWindowTab(QWidget):
         self.progress_dialog.setValue(100)
         #making double sure
         self.clear_file_list()
+        self.progress_dialog.close()
+
+    
+    def handle_render_cancelled(self):
+        self.work_threads.quit()
         self.progress_dialog.close()
           
 
@@ -503,9 +514,3 @@ class MainWindowTab(QWidget):
             self.file_change_count += 1"""
 
 
-    def remove_temp_files(self):
-        files = os.listdir(self.temp_folder)
-        for file in files:
-            file_path = os.path.join(self.temp_folder, file)
-            if os.path.isfile(file_path):
-                os.remove(file_path)

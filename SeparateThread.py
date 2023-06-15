@@ -32,6 +32,7 @@ class SeparateThread(QObject):
     render_stopped = Signal(int)
     render_done = Signal()
     update_gui = Signal()
+    render_cancelled = Signal()
 
             
     def __init__(self):
@@ -57,7 +58,7 @@ class SeparateThread(QObject):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.emit_update)
-        self.timer.start(500)
+        self.timer.start(50)
 
 
     def get_latest_nuke_path(self):
@@ -202,12 +203,9 @@ class SeparateThread(QObject):
 
 
     def handle_internal_finish(self, exit_code, exit_status):
-        if self.stop_flag:
-            self.internal_render_process.terminate()
-            self.render_stopped.emit(exit_code if exit_status == QProcess.NormalExit else None)
-        else:
-            self.internal_render_process.close()
-            self.render_done.emit()
+        self.render_stopped.emit(exit_code if exit_status == QProcess.NormalExit else None)
+        self.internal_render_process.close()
+        self.render_done.emit()
 
     
     def handle_external_output(self):
@@ -216,13 +214,8 @@ class SeparateThread(QObject):
 
 
     def handle_external_finish(self, exit_code, exit_status):
-        if self.stop_flag:
-            self.external_render_process.terminate()
-            self.external_error_code = exit_code if exit_status == QProcess.NormalExit else None
-        else:
-            #self.external_error_code = exit_code
-            self.external_error_code = None
-            self.external_render_process.close()
+        self.external_error_code = exit_code if exit_status == QProcess.NormalExit else None
+        self.external_render_process.close()
 
 
     def handle_error(self, error):
@@ -247,4 +240,5 @@ class SeparateThread(QObject):
 
 
     def stop(self):
-        self.stop_flag = True
+        self.internal_render_process.terminate()
+        self.render_cancelled.emit()
