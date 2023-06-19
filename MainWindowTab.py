@@ -86,11 +86,13 @@ class MainWindowTab(QWidget):
         self.settings = settings
         self.settings.load_settings()
         self.file_paths = []
+        self.file_info = {}
         self.py_render_script = r"./RenderScript.py"
         #careful using this value as the max workers, it can cause all the scripts to be rendered at once
         self.max_num_threads = os.cpu_count()
 
         self.continue_rendering = True
+        self.done_rendering = False
         
 
         #update variables
@@ -139,6 +141,8 @@ class MainWindowTab(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(500)
+
+        self.remove_timer = None
 
         #file watching stuff
         """#data_dir = os.getenv('APPDATA')
@@ -200,11 +204,16 @@ class MainWindowTab(QWidget):
             file list view. If no items are selected, this method does nothing.
         """
         selected_items = self.file_list.selectedItems()
+
         for item in selected_items:
-            self.file_paths.remove(item.text())
+            if item.text() in self.file_info:
+                self.file_paths.remove(self.file_info[item.text()])
+            else:
+                self.file_paths.remove(item.text())
             self.file_list.takeItem(self.file_list.row(item))
 
 
+    #could optimize this by not making it update the list every update call
     def update_file_list(self):
         """
             This method clears the file_list an then adds all the file_paths into the file_list. 
@@ -213,29 +222,40 @@ class MainWindowTab(QWidget):
         self.file_list.clear()
 
         if self.full_filepath_name:
-                self.file_list.addItems(self.file_paths)         
+                self.file_list.addItems(self.file_paths)
+                self.file_info = {}     
         else:
             for file_path in self.file_paths:
                 self.file_list.addItem(os.path.basename(file_path))
+                self.file_info[os.path.basename(file_path)] = file_path
+
+            print(self.file_info)    
 
 
-    def clear_file_list(self):
+    def clear_file_list(self, finish_clear = False):
         """
             This method updates file_paths to hold no list objects and then calls for the list
             to be updated. If the list count is above 5 then it prompts the user if they want to
             continue clearing the list.
         """
-        if len(self.file_paths) > 5:
-            self.clear_confirmation_box = QMessageBox.question(self, 'Warning', 'You have a large number of files in the list. \
-                                                             \nDo you still wish to clear the list?',
-                                                             QMessageBox.Yes | QMessageBox.No,
-                                                             QMessageBox.No)
-            if self.clear_confirmation_box == QMessageBox.Yes:
+        if not finish_clear:
+            if len(self.file_paths) > 5:
+                self.clear_confirmation_box = QMessageBox.question(self, 'Warning', 'You have a large number of files in the list. \
+                                                                \nDo you still wish to clear the list?',
+                                                                QMessageBox.Yes | QMessageBox.No,
+                                                                QMessageBox.No)
+                if self.clear_confirmation_box == QMessageBox.Yes:
+                    self.file_paths = []
+                    self.update_file_list()
+            else:
                 self.file_paths = []
                 self.update_file_list()
+
         else:
             self.file_paths = []
             self.update_file_list()
+        self.file_info = {}
+
 
 
     def run_render(self):
@@ -271,6 +291,8 @@ class MainWindowTab(QWidget):
             QtWidgets.QMessageBox.warning(self, "Warning", "There are no files in the queue!")
             return
         
+        self.done_rendering = False
+        
         self.settings.remove_temp_files()
 
         self.work_threads = QThread(self)
@@ -288,6 +310,8 @@ class MainWindowTab(QWidget):
         self.progress_dialog.setLabelText(f"Rendering script {self.progress+1} of {self.total_script_count}"+
                                         f"\nEstimated Time: {self.get_estimated_time(self.render_times, self.total_script_count-self.progress)}")
         QtWidgets.QApplication.processEvents()
+
+        self.remove_timer = time.time()
         
         self.nuke_render_worker = SeparateThread()
         self.nuke_render_worker.moveToThread(self.work_threads)
@@ -326,8 +350,20 @@ class MainWindowTab(QWidget):
                 render_item = self.file_list.findItems(script, QtCore.Qt.MatchExactly)
             else:
                 render_item = self.file_list.findItems(os.path.basename(script), QtCore.Qt.MatchExactly)
+
+            if not self.full_filepath_name:
+                script_label = os.path.basename(script)
+            else:
+                script_label = script
+
             self.file_paths.remove(script)
             self.file_list.takeItem(self.file_list.row(render_item[0]))
+
+            #for item in self.file_list.findItems(script_label, QtCore.Qt.MatchExactly):
+            #    if item.text() == script_label:
+            #        self.file_list.takeItem(self.file_list.row(item))
+            #        break
+                        
             self.progress += 1
             self.render_times.append(elapsed_time)
             self.progress_dialog.setValue(int(self.progress))
@@ -337,10 +373,11 @@ class MainWindowTab(QWidget):
 
 
     def handle_render_finish(self):
+        self.done_rendering = True
         self.work_threads.quit()
         self.progress_dialog.setValue(100)
         #making double sure
-        self.clear_file_list()
+        self.clear_file_list(finish_clear = True)
         self.progress_dialog.close()
 
     
@@ -476,6 +513,12 @@ class MainWindowTab(QWidget):
 
 
     def handle_new_info_file(self):
+        print("handle_new_file called")
+
+        if self.done_rendering or time.time() - self.remove_timer <= 0.01:
+            return
+            sys.exit()
+        self.remove_timer = time.time()
         self.files = self.directory.entryList()
         #This loop reads all files that are xml
         for file in self.files:
@@ -503,6 +546,7 @@ class MainWindowTab(QWidget):
 
 
     def file_changed(self):
+        print("File changed called")
         self.handle_new_info_file()
 
         """if self.file_change_count == 9:
