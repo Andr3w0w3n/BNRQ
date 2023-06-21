@@ -32,54 +32,58 @@ class MainWindowTab(QWidget):
         This class defines the main render page, containing a list of Nuke scripts and a set of buttons to add/remove them, clear the list, and start a render process on the list. 
 
         Args:
-            settings (QSettings): An instance of QSettings containing the user-defined and pre-set settings for the application.
+            settings (QWidget): An instance of QWidget.
 
         Attributes:
-            settings (QSettings): An instance of QSettings containing the user-defined settings for the application.
-            file_paths (list): A list containing the paths of the Nuke scripts to be rendered.
-            nuke_exe (str): The path of the Nuke executable file, read from the user-defined settings.
-            py_render_script (str): The path of the Python script used to render the Nuke scripts.
-            write_node_name (str): The name of the Write node to be rendered in the Nuke scripts.
-            folder_search_start (str): The default folder to search for Nuke scripts when adding them to the list.
-            add_script (QPushButton): A button to add Nuke scripts to the list.
-            remove_script (QPushButton): A button to remove Nuke scripts from the list.
-            clear_files (QPushButton): A button to clear the list of Nuke scripts.
-            render_button (QPushButton): A button to start the rendering process.
-            file_list (QListWidget): A widget containing the list of Nuke scripts to be rendered.
+            settings (Settings): An instance of the Settings class for managing application settings.
+            file_paths (list): A list of file paths to be rendered.
+            file_info (dict): A dictionary containing information about the files.
+            py_render_script (str): The path to the RenderScript.py file.
+            max_num_threads (int): The maximum number of threads to use for rendering.
+            continue_rendering (bool): Flag indicating whether rendering should continue.
+            done_rendering (bool): Flag indicating whether rendering has completed.
+            full_filepath_name (str): The full file path name.
+            add_script (QPushButton): Button for adding scripts.
+            remove_script (QPushButton): Button for removing scripts.
+            clear_files (QPushButton): Button for clearing the file list.
+            render_button (QPushButton): Button for starting the rendering process.
+            file_list (QListWidget): List widget displaying the file list.
+            write_details (QLabel): Label for displaying write details.
+            translator (FourCCTranslator): An instance of the FourCCTranslator class for translating FourCC codes.
+            timer (QTimer): Timer for updating the application.
+            remove_timer: Timer for removing temporary files.
+            render_queue_folder (str): The folder path for the render queue.
+            temp_folder (str): The folder path for temporary files.
+            xml_filepath (str): The file path for the CurrentRenderScriptInfo.xml file.
+            directory (QDir): QDir object representing the temporary folder.
+            watcher (QFileSystemWatcher): File system watcher for monitoring file changes.
+            file_change_count (int): The number of file changes detected.
 
         Methods:
             add_script_to_q(): Add a Nuke script to the list.
             remove_script_from_q(): Remove the selected Nuke scripts from the list.
             update_file_list(): Update the file list widget with the current list of Nuke scripts.
             clear_file_list(): Clear the list of Nuke scripts.
-            run_render(): Start the rendering process for the Nuke scripts in the list.
-            render_nuke_script(nuke_script_path): Execute the RenderScript.py script with the specified Nuke script as argument, and return the output/error message.
-            get_render_times(render_times): Find the average(mean) time of each render to show the user an estimated finish time
+            run_render(): Runs the render of the nuke scripts in a separate thread.
+            handle_render_update(script, exit_code, elapsed_time): Called on signal recieved, updates the progress bar.
+            handle_render_finish(): Called when render is complete, performs cleanup tasks.
+            handle_render_cancelled(): Called when the rendered is cancelled by the user.
+            get_estimated_times(render_times, items_left): Find the average(mean) time of each render to show the user an estimated finish time.
+            get_write_info(): Reads the script as a text file and finds the write info through the text file.
+            update(): method called on a timer to update the look of the list, primarily for the filename view change.
+            handle_new_info_file(): Called when a new file is made in the designated folder. Used for updating progress bar.
+            file_changed(): Called when a file changes in the designated folder.
     """
 
 
     def __init__(self, settings):
         """
-            Initializes a new instance of the `RenderQueue` class.
+        Initializes the main window of BNRQ application.
 
-            Args:
-                settings (Settings): The `Settings` object containing the settings for the render queue.
-
-            Attributes:
-                settings (Settings): The `Settings` object containing the settings for the render queue.
-                file_paths (List[str]): The list of file paths to render.
-                nuke_exe (str): The path to the Nuke executable.
-                py_render_script (str): The path to the Python render script.
-                write_node_name (str): The name of the write node to render.
-                folder_search_start (str): The path to the folder to start searching for files to render.
-                max_num_threads (int): The maximum number of threads to use for rendering.
-
-                add_script (QPushButton): The "Add" button to add a file path to the render queue.
-                remove_script (QPushButton): The "Remove" button to remove a file path from the render queue.
-                clear_files (QPushButton): The "Clear" button to clear the file path list.
-                render_button (QPushButton): The "Render" button to start the rendering process.
-                file_list (QListWidget): The list widget containing the file paths to render.
+        Args:
+            settings (Settings): An instance of the Settings class for managing application settings.
         """
+
         super().__init__()
        
 
@@ -145,13 +149,6 @@ class MainWindowTab(QWidget):
         self.remove_timer = None
 
         #file watching stuff
-        """#data_dir = os.getenv('APPDATA')
-        try:
-            data_dir = os.path.abspath(sys.argv[0])
-        except FileNotFoundError:
-            app = QCoreApplication.instance()
-            data_dir = app.applicationFilePath()
-        self.render_queue_folder = os.path.join(data_dir, "BNRQ")"""
         self.render_queue_folder = self.settings.render_queue_folder
         self.temp_folder = self.settings.temp_folder
         self.xml_filepath = os.path.join(self.temp_folder, "CurrentRenderScriptInfo.xml")
@@ -236,7 +233,12 @@ class MainWindowTab(QWidget):
         """
             This method updates file_paths to hold no list objects and then calls for the list
             to be updated. If the list count is above 5 then it prompts the user if they want to
-            continue clearing the list.
+            continue clearing the list. If the method call is from clearing the list after the render
+            then the method skips any checks and just clears everything.
+
+            Args: 
+                finish_clear (Boolean): This argument tells the method whether the call to this method
+                    is from the render being finished and clearing the list or if it was from the user. 
         """
         if not finish_clear:
             if len(self.file_paths) > 5:
@@ -257,33 +259,13 @@ class MainWindowTab(QWidget):
         self.file_info = {}
 
 
-
     def run_render(self):
         """
-        Render the Nuke scripts in the queue.
+        Executes the rendering process for the queued files.
 
-        If there are no scripts in the queue, a warning message is displayed, and
-        the method returns immediately. Otherwise, the scripts are rendered one
-        by one in a separate thread. The progress is displayed in a modal dialog
-        with a cancel button.
-
-        The total number of scripts in the queue is calculated, and a progress
-        dialog is created to show the rendering progress. The estimated time
-        remaining for the current script and the total queue is displayed in the
-        dialog. The render times for each script are recorded and used to calculate
-        the estimated time.
-
-        The rendering is performed in a separate thread to keep the UI responsive.
-        The `render_list` method of the `SeparateThread` object is connected to the
-        thread's `started` signal, and it is responsible for rendering the scripts
-        in the queue. The `render_script_update` signal is connected to the
-        `handle_render_update` method to receive updates about the rendering
-        progress. The `render_done` signal is connected to the `handle_render_finish`
-        method to handle the completion of the rendering.
-
-        Note: It is assumed that the necessary UI elements such as the `self.file_paths` 
-        and other relevant attributes have been properly initialized before calling 
-        this method.
+        If there are no files in the queue, it displays a warning message and returns.
+        Otherwise, it initializes the necessary variables and objects for rendering,
+        including the error object, progress dialog, and render worker thread.
         """
         
 
@@ -316,11 +298,6 @@ class MainWindowTab(QWidget):
         self.nuke_render_worker = SeparateThread()
         self.nuke_render_worker.moveToThread(self.work_threads)
 
-        """if isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "true":
-            self.settings.render_nuke_open = True
-        elif isinstance(self.render_nuke_open, str) and self.render_nuke_open.lower() == "false":
-            self.settings.render_nuke_open = False"""
-
         if self.settings.render_nuke_open:
             self.work_threads.started.connect(partial(self.nuke_render_worker.render_script_list, self.file_paths))
         else:
@@ -334,6 +311,19 @@ class MainWindowTab(QWidget):
 
 
     def handle_render_update(self, script, exit_code, elapsed_time):
+        """
+        Handles updating the progress bar while application is rendering.
+
+        If the given exit code indicates an error, the method terminates work threads,
+        displays an error message box, and performs necessary cleanup.
+        Otherwise, it handles the successful update by removing the script from the file paths and file list,
+        updating the progress, and displaying the progress in the progress dialog.
+
+        Args:
+            script (str): The script being rendered.
+            exit_code (int or None): The exit code of the render process. None if not available.
+            elapsed_time (float): The elapsed time of the render process.
+        """
         if self.error_obj.check_error_codes(exit_code):
             #self.nuke_render_worker.quit_rt()
             self.work_threads.terminate()
@@ -351,18 +341,8 @@ class MainWindowTab(QWidget):
             else:
                 render_item = self.file_list.findItems(os.path.basename(script), QtCore.Qt.MatchExactly)
 
-            if not self.full_filepath_name:
-                script_label = os.path.basename(script)
-            else:
-                script_label = script
-
             self.file_paths.remove(script)
             self.file_list.takeItem(self.file_list.row(render_item[0]))
-
-            #for item in self.file_list.findItems(script_label, QtCore.Qt.MatchExactly):
-            #    if item.text() == script_label:
-            #        self.file_list.takeItem(self.file_list.row(item))
-            #        break
                         
             self.progress += 1
             self.render_times.append(elapsed_time)
@@ -373,15 +353,21 @@ class MainWindowTab(QWidget):
 
 
     def handle_render_finish(self):
+        """
+        Handles the rendering finishing. Performs final cleanups and quits the render thread.
+        """
         self.done_rendering = True
         self.work_threads.quit()
         self.progress_dialog.setValue(100)
         #making double sure
-        self.clear_file_list(finish_clear = True)
+        self.clear_file_list(True)
         self.progress_dialog.close()
 
     
     def handle_render_cancelled(self):
+        """
+        Called when the thread needs to be stopped (from user cancelling). 
+        """
         self.work_threads.quit()
         self.progress_dialog.close()
           
@@ -448,6 +434,13 @@ class MainWindowTab(QWidget):
 
     #could potentially make the output look nicer    
     def get_write_info(self):
+        """
+        Retrieves and displays information about the selected write node in the UI.
+
+        If no write node is selected, the method sets the write details text to an empty string and returns.
+        Otherwise, it retrieves the selected script, extracts information related to the write node,
+        and updates the write details text with the gathered information.
+        """
 
         if not self.file_list.selectedItems():
             self.write_details.setText("")
@@ -506,6 +499,13 @@ class MainWindowTab(QWidget):
         
 
     def update(self):
+        """
+        Updates the application state based on the settings.
+
+        If the current full file path name is different from the settings' full file path name,
+        the method updates the full file path name and calls the update_file_list method to update the file list.
+        """
+        
         if str(self.full_filepath_name).lower() != str(self.settings.full_filepath_name).lower():
             self.full_filepath_name = self.settings.full_filepath_name
             self.update_file_list()
@@ -513,11 +513,20 @@ class MainWindowTab(QWidget):
 
 
     def handle_new_info_file(self):
-        print("handle_new_file called")
+        """
+        Handles the processing of a new info file.
+
+        If the rendering is already done or the specified time interval since the last removal has not elapsed,
+        the method returns and exits the system. This is to catch any file being read twice
+
+        Otherwise, it reads the XML files in the directory and extracts relevant information, such as the script name
+        and execution time. The extracted information is then passed to the handle_render_update method.
+        """
 
         if self.done_rendering or time.time() - self.remove_timer <= 0.01:
             return
             sys.exit()
+        
         self.remove_timer = time.time()
         self.files = self.directory.entryList()
         #This loop reads all files that are xml
@@ -538,15 +547,15 @@ class MainWindowTab(QWidget):
                                 attributes = reader.attributes()
                                 script = attributes.value("name")
                                 execute_time = float(attributes.value("execute_time"))
-                                print(f"Script: {script}")
-                                print(f"Execute Time: {execute_time}")
                                 self.handle_render_update(script, None, execute_time)
 
                     qfile.close()
 
 
     def file_changed(self):
-        print("File changed called")
+        """
+        Handles a file being changed.
+        """
         self.handle_new_info_file()
 
         """if self.file_change_count == 9:

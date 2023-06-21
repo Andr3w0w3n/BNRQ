@@ -15,18 +15,31 @@ from PySide6.QtCore import (
 from PySide6.QtWidgets import QMessageBox
 
 class SeparateThread(QObject):
-    """A class to handle single thread tasks. This was created to help keep the GUI active while some tasks
-        are run such as finding the nuke executable path.
-
-    Args:
-        QObject (_type_)
-        
-    Signals:
-        nuke_path_ready (str): This emits the nuke path once it is found, or none if it is not.
-        render_script_update (str, int, float): This signal emits the information needed for the GUI to present
-            the render info to the user. The Script, the exit code of the render, and the time it took to render it
-        render_done (): This just sends a signal once the render is done so the GUI can handle everything.
     """
+        SeparateThread class.
+
+        This class represents a separate thread for rendering Nuke scripts. It provides methods for finding the latest version
+        of Nuke executable, rendering a list of Nuke scripts, and handling the rendering process.
+
+        Signals:
+            nuke_path_ready (str): Signal emitted when the latest Nuke executable path is found.
+            render_script_update (str, int, float): Signal emitted after each script is rendered.
+            render_stopped (int): Signal emitted when rendering is stopped.
+            render_done: Signal emitted when rendering of all scripts is complete.
+            update_gui: Signal emitted to update the GUI.
+            render_cancelled: Signal emitted when rendering is cancelled.
+
+        Attributes:
+            settings (Settings): The settings object for managing user preferences.
+            error_obj (ErrorCodes): The object for managing error codes.
+            stop_flag (bool): Flag indicating if rendering should be stopped.
+            external_error_code (int): The external error code for the render process.
+            render_queue_folder (str): The folder path for the render queue.
+            temp_folder (str): The folder path for temporary files.
+            xml_filepath (str): The filepath for the current render script info XML.
+            timer (QTimer): The timer for emitting GUI updates.
+    """
+
     nuke_path_ready = Signal(str)
     render_script_update = Signal(str, int, float)
     render_stopped = Signal(int)
@@ -36,6 +49,11 @@ class SeparateThread(QObject):
 
             
     def __init__(self):
+        """
+            Initialization method.
+
+            This initializes the SeparateThread object and sets up the necessary attributes and signals.
+        """
         super().__init__()
         self.settings = Settings()
         self.settings.load_settings()
@@ -164,6 +182,15 @@ class SeparateThread(QObject):
 
     #opening 1 instance of nuke and open scripts from there render method
     def render_script_list(self, file_paths):
+        """
+            Render a list of Nuke scripts using an internal render process.
+
+            This method opens an instance of Nuke and renders the scripts by running the RenderScriptList.py script.
+            It communicates with the internal render process and emits signals to update the GUI.
+
+            Args:
+                file_paths (list): List of file paths containing the Nuke scripts to render.
+        """
         try:
             self.py_render_script = os.path.join(sys._MEIPASS, "RenderScriptList.py")
         except AttributeError:
@@ -198,27 +225,71 @@ class SeparateThread(QObject):
     
     
     def handle_internal_output(self):
+        """
+            Handle the output from the internal render process.
+
+            This method is called when there is output from the internal render process.
+            It currently does not do anything.
+
+        """
         #TODO, do something with this output???
         output = self.internal_render_process.readAllStandardOutput()
 
 
     def handle_internal_finish(self, exit_code, exit_status):
+        """
+            Handle the completion of the internal render process.
+
+            This method is called when the internal render process has finished.
+            It emits signals to update the GUI and indicate the status of the rendering.
+
+            Args:
+                exit_code (int): The exit code of the internal render process.
+                exit_status (QProcess.ExitStatus): The exit status of the internal render process.
+        """
         self.render_stopped.emit(exit_code if exit_status == QProcess.NormalExit else None)
         self.internal_render_process.close()
         self.render_done.emit()
 
     
     def handle_external_output(self):
+        """
+            Handle the output from the external render process.
+
+            This method is called when there is output from the external render process.
+            It currently does not do anything.
+
+        """
         #TODO, do something with this output???
         output = self.external_render_process.readAllStandardOutput()
 
 
     def handle_external_finish(self, exit_code, exit_status):
+        """
+        Handle the completion of the external render process.
+
+        This method is called when the external render process has finished.
+        It closes the external render process.
+
+        Args:
+            exit_code (int): The exit code of the external render process.
+            exit_status (QProcess.ExitStatus): The exit status of the external render process.
+        """
         self.external_error_code = exit_code if exit_status == QProcess.NormalExit else None
         self.external_render_process.close()
 
 
     def handle_error(self, error):
+        """
+            Handle errors that occur during the render process.
+
+            This method is called when an error occurs during the render process.
+            It currently handles three types of errors: FailedToStart, Crashed, and Timedout.
+            The specific error handling logic is not implemented yet.
+
+            Args:
+                error (QProcess.ProcessError): The type of error that occurred.
+        """
         #TODO, fill out these error modules
         if error == QProcess.FailedToStart:
             # Handle the case where the process fails to start
@@ -236,9 +307,19 @@ class SeparateThread(QObject):
 
 
     def emit_update(self):
+        """
+            Emit the update_gui signal.
+
+            This method emits the update_gui signal to update the GUI.
+        """
         self.update_gui.emit()
 
 
     def stop(self):
+        """
+            Stop the rendering process.
+
+            This method terminates the internal render process and emits the render_cancelled signal.
+        """
         self.internal_render_process.terminate()
         self.render_cancelled.emit()

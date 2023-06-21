@@ -11,20 +11,46 @@ from PySide6.QtCore import Qt, QThread, Signal
 
 
 class LaunchSplashScreen(QSplashScreen):
+    """
+    A class that represents a launch splash screen.
+
+    Attributes:
+        finished_launching (Signal): A signal emitted when the launch process is finished.
+        splash_screen (SplashScreen): The SplashScreen object.
+
+    Methods:
+        __init__(): Initializes the LaunchSplashScreen object.
+        launch(): Launches the splash screen and starts loading settings in a separate thread.
+        continue_construction(): Continues the construction process after the settings are done loading.
+
+    """
+
     finished_launching = Signal()
 
     def __init__(self):
+        """
+        Initialization method.
+
+        It initializes the LaunchSplashScreen object and loads the SplashScreen object.
+
+        """
         super().__init__()
 
-        #load logo splashscreen
+        # Load logo splash screen
         self.splash_screen = SplashScreen()
-        
-        
-    def launch(self):
-        self.splash_screen.show()
-        QtWidgets.QApplication.processEvents() 
 
-        #load settings in separate thread
+    def launch(self):
+        """
+        Launches the splash screen and starts loading settings in a separate thread.
+
+        This method shows the splash screen, initializes a separate thread, and connects the necessary signals and slots
+        between the thread and the splash screen. Then, it starts the thread to load the settings.
+
+        """
+        self.splash_screen.show()
+        QtWidgets.QApplication.processEvents()
+
+        # Load settings in a separate thread
         self.threads = QThread(self)
 
         self.launch_worker = Settings()
@@ -35,10 +61,16 @@ class LaunchSplashScreen(QSplashScreen):
         self.threads.started.connect(self.launch_worker.launch)
         self.threads.start()
 
-
     def continue_construction(self):
+        """
+        Continues the construction process after the settings are done loading.
+
+        This method is called when the loading of settings is finished. It stops the thread, hides the splash screen,
+        and emits the finished_launching signal to indicate that the launch process is finished.
+
+        """
         self.threads.quit()
-        #hide logo once settings are done loading
+        # Hide logo once settings are done loading
         self.splash_screen.hide()
         QtWidgets.QApplication.processEvents()
         self.finished_launching.emit()

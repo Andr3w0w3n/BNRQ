@@ -62,8 +62,8 @@ def render_script(wn):
         nuke.RenderUserAbort: If the render was aborted by the user.
     """
 
-    """
     #these errors are wrong, have to look into proper error types
+    """
     error_codes = {
         nuke.ExecuteAborted: EXIT_RENDER_CANCELLED,
         nuke.RenderError: EXIT_RENDER_ERROR,
@@ -89,6 +89,17 @@ def render_script(wn):
 
 
 def main(file_paths, xml_filepath, write_node_name = "Write1"):
+    """
+    Renders scripts and generates an XML file with execution information.
+
+    Args:
+        file_paths (list): List of file paths to the scripts.
+        xml_filepath (str): Path to the XML file to be generated.
+        write_node_name (str, optional): Name of the write node to be used for rendering. Defaults to "Write1".
+
+    Raises:
+        Exception: If there's an error writing the XML file.
+    """
 
     #setting the logging [not being used]
     #logging.basicConfig(level = logging.ERROR)

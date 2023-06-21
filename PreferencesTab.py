@@ -28,10 +28,31 @@ class PreferencesTab(QDialog):
         
         Methods:
             update_nuke_path(): A method that updates the Nuke executable path based on the user's selection.
+            close_prefs(event): UNUSED. A method that prompts the user if they would really like to close with unsaved changes
             update_file_start_path(): A method that updates the starting folder for the file search based on the user's selection.
+            save_button_clicked(): Actions taken once the user clicks the save button
+            settings_changed(): enables the save and cancel buttons if not already done so
+            get_nuke_path(): Runs a separate thread to get the nuke path and apply it to the settings
+            handle_nuke_path_search_result(nuke_path): Applies the result of the nuke search to the settings
+            cancel_setting_chagnes(): Called when the user clicks the save button
+            enable_save_Buttons(): Enables the save and cancel buttons as well as displays the warning text
+            disable_save_buttons(): Disables the save and cancel buttons as well as hides the warning text
+            show_warning_label(on): shows warning text, on is defaulted to False
+            prompt_user_save_file_del(): Confirms that the user would like to delete the save file
+            prompt_user_temp_file_del(): UNUSED. Confirms that the user would like to delete the temporary files and folders
+            enable_del_button(): Re-enables the delete button if settings were to be saved again
     """
 
     def __init__(self, settings):
+        """
+            Initialization method.
+
+            It initializes the Settings object and sets up the user interface for the preferences tab.
+            The method creates various widgets, connects signals and slots, and sets the layout for the preferences tab.
+
+            Args:
+                settings (Settings): The settings object containing the initial settings values.
+        """
         super().__init__()
 
         # Store a reference to the settings object
@@ -185,6 +206,10 @@ class PreferencesTab(QDialog):
         
 
     def close_prefs(self, event):
+        """
+            UNUSED. Meant to stop the user if the user attempts to exit the preferences panel without saving.
+            This is not implemented yet.
+        """
         if self.save_button.isEnabled():
             reply = QMessageBox.question(self.dialog, "Unsaved Changes",
                                          "Are you sure you want to close without saving your changes?",
@@ -273,6 +298,10 @@ class PreferencesTab(QDialog):
        
         
     def cancel_setting_changes(self):
+        """
+            Prompts user to make sure they would like to discard all of their changes. If so, all changes are removed and values 
+            of the text boxes and buttons reset to their original values before the changes. This is not a reset to default.
+        """
         self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to discard all your changes?',
                                                      QMessageBox.Yes | QMessageBox.No,
                                                      QMessageBox.No)
@@ -291,18 +320,27 @@ class PreferencesTab(QDialog):
             
             
     def enable_save_buttons(self):
+        """
+            Enables the save and cancel buttons and shows the warning label.
+        """
         self.save_button.setEnabled(True)
         self.cancel_changes_button.setEnabled(True)
         self.show_warning_label(True)
     
     
     def disable_save_buttons(self):
+        """
+            Disables the save and cancel buttons and hides the warning label.
+        """
         self.save_button.setEnabled(False)
         self.cancel_changes_button.setEnabled(False)
         self.show_warning_label(False)
     
 
     def show_warning_label(self, on = False):
+        """
+            Sets the warning label when the user has not saved settings.
+        """
         if on:
             self.warning_label.setText("You have not saved any changes!")
         else:
@@ -310,6 +348,9 @@ class PreferencesTab(QDialog):
 
 
     def prompt_user_save_file_del(self):
+        """
+            Prompts user to make sure they want to remove the save file. Deletes the save file if confirmed
+        """
         self.confirmation_box = QMessageBox.question(self, 'Warning', 'Do you wish to delete the save file? \n(a new one will be created when you relaunch but no settings will be saved for relaunch)',
                                                      QMessageBox.Yes | QMessageBox.No,
                                                      QMessageBox.No)
@@ -331,6 +372,9 @@ class PreferencesTab(QDialog):
     
 
     def enable_del_button(self):
+        """
+            Re-enables the del json file button.
+        """
         self.del_json_file_button.setEnabled(True)
 
         

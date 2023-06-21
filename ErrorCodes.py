@@ -5,9 +5,28 @@ from Settings import Settings
 
 class ErrorCodes():
     #create the error codes so that they do not need to be created again
+
+    """
+        A class that defines error codes and provides error messages.
+
+        Attributes:
+            settings (Settings): The Settings object.
+            error_codes (dict): A dictionary that maps error codes to their corresponding error messages.
+            nuke_error_messages (dict): A dictionary that maps specific Nuke error codes to their error messages.
+
+        Methods:
+            __init__(): Initializes the ErrorCodes object.
+            get_error_message(output, script): Returns the error message based on the provided output code and script name.
+            check_error_codes(code): Checks if the provided code exists in the error_codes dictionary.
+    """
     
 
     def __init__(self):    
+        """
+            Initialization method.
+
+            Sets up error code dictionary.
+        """
         super().__init__()
         self.settings = Settings()
         self.settings.load_settings()
@@ -31,11 +50,32 @@ class ErrorCodes():
         }
 
     def get_error_message(self, output, script):
+        """
+        Retrieves the error message based on the provided output code and script name.
+
+        Args:
+            output (int): The output code.
+            script (str): The script name.
+
+        Returns:
+            str: The corresponding error message.
+
+        """
         if output == 404:
             return f"There was no script found named {script}."
         return self.error_codes[output]
     
     def check_error_codes(self, code):
+        """
+        Checks if the provided code exists in the error_codes dictionary.
+
+        Args:
+            code (int): The error code to check.
+
+        Returns:
+            bool: True if the code exists, False otherwise.
+
+        """
         if code is None:
             return False
         elif code in self.error_codes:

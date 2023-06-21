@@ -24,6 +24,26 @@ from PySide6.QtCore import(
 )
 
 class Application(QMainWindow):
+    """
+        The main application class that sets up the application window and handles the loading of settings.
+
+        This class inherits from QMainWindow and constructs the main window with tabs. It also displays a splash screen
+        during the loading process and handles the completion of settings loading.
+
+        Attributes:
+            splash_screen (SplashScreen): The splash screen widget.
+            threads (QThread): The thread for loading settings.
+            launch_worker (Settings): The settings loading worker object.
+            settings (Settings): The settings object.
+
+        Methods:
+            __init__(): Initializes the Application object and sets up the application window.
+            continue_construction(): Continues the construction of the application after settings loading is finished.
+            closeEvent(event): Overrides the closeEvent method to handle the event of the application window being closed.
+            open_readme(): Opens the README file in the default browser under the use section.
+            open_pref_dialog(): Opens the preferences dialog.
+    """
+
     def __init__(self):
         """
         This method sets up the application window, loads settings in a separate thread,
@@ -57,6 +77,13 @@ class Application(QMainWindow):
 
     
     def continue_construction(self):
+        """
+        Continues the construction of the application after the settings loading is finished.
+
+        This method performs various tasks to finalize the construction of the application window and user interface.
+        It hides the splash screen, sets window properties such as size and title, constructs the main window with tabs
+        and adds toolbar buttons for Help and Preferences.
+        """
         self.splash_screen.deal_with_end()
         QtWidgets.QApplication.processEvents() 
         time.sleep(1.5)

@@ -8,9 +8,30 @@ from PySide6.QtCore import Qt
 
 
 class SplashScreen(QSplashScreen):
+    """
+        A splash screen widget for displaying logo and loading information.
+
+        Attributes:
+            root_path (str): The root path for the search.
+            latested_found_nuke_version (str): The latest found Nuke version.
+            logo_filepath (str): The file path for the logo image.
+
+        Methods:
+            __init__(): Initializes the SplashScreen object.
+            set_root_description_text(root_dir_text): Sets the description text to the current folder being searched.
+            set_nuke_version_description(nuke_v_text): Sets text to indicate that Nuke has been found and displays its version.
+            deal_with_end(): Performs any necessary tasks at the end of the splash screen.
+            mousePressEvent(event): Handles the mouse press event on the splash screen.
+    """
 
 
     def __init__(self):
+        """
+        Initializes the splash screen.
+
+        It sets up the window size, position, and appearance. Loads the logo image, sets up the layout, and initializes
+        various labels. Finally, it sets the layout for the splash screen.
+        """
         super().__init__()
     
         #screen size
@@ -95,19 +116,31 @@ class SplashScreen(QSplashScreen):
 
 
     def set_root_description_text(self, root_dir_text):
+        """
+            Sets the description text to the current folder being searched.
+        """
         self.details.setText(f"Looking through\n{root_dir_text}")
         QtWidgets.QApplication.processEvents()
 
     
     def set_nuke_version_description(self, nuke_v_text):
+        """
+            Set text to say that nuke has been found and what version
+        """
         self.nuke_v_found.setText(f"Using Nuke version {nuke_v_text}")
         QtWidgets.QApplication.processEvents()
 
     
     def deal_with_end(self):
+        """
+            Function to do any tasks at the end of the splash screen
+        """
         self.details.hide()
     
 
     def mousePressEvent(self, event):
+        """
+            Removes the ability for the user to click so nothing breaks
+        """
         # disable default "click-to-dismiss" behaviour
         pass
