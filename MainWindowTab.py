@@ -165,6 +165,8 @@ class MainWindowTab(QWidget):
         self.watcher.directoryChanged.connect(self.handle_new_info_file)
         self.watcher.fileChanged.connect(self.file_changed)
 
+        self.wrong_write_node_name_list = []
+
 
     def add_script_to_q(self):
         """   
@@ -224,9 +226,7 @@ class MainWindowTab(QWidget):
         else:
             for file_path in self.file_paths:
                 self.file_list.addItem(os.path.basename(file_path))
-                self.file_info[os.path.basename(file_path)] = file_path
-
-            print(self.file_info)    
+                self.file_info[os.path.basename(file_path)] = file_path 
 
 
     def clear_file_list(self, finish_clear = False):
@@ -267,10 +267,23 @@ class MainWindowTab(QWidget):
         Otherwise, it initializes the necessary variables and objects for rendering,
         including the error object, progress dialog, and render worker thread.
         """
-        
+        self.file_list.clearSelection()
 
         if not self.file_paths:
             QtWidgets.QMessageBox.warning(self, "Warning", "There are no files in the queue!")
+            return
+        
+        if self.check_write_nodes():
+            message_text = "The following scripts have the wrong write node name"
+            for script in self.wrong_write_node_name_list:
+                message_text += f"<br>{script}"
+            message_text += "<br>Rendering will not happen"
+            message_box = QMessageBox()
+            message_box.setIcon(QMessageBox.Warning)
+            message_box.setWindowTitle("Warning")
+            message_box.setText(message_text)
+            message_box.setStandardButtons(QMessageBox.Ok)
+            message_box.exec_()
             return
         
         self.done_rendering = False
@@ -497,6 +510,24 @@ class MainWindowTab(QWidget):
                                     f"{colorspace_line}"
                                     f"{codec}")
         
+
+    def check_write_nodes(self):
+        """
+            Checks to see if there are any scripts missing the proper write node name.
+
+            Returns:
+                True if every script does not have the proper name. False if every script does not. 
+        """
+        self.wrong_write_node_name_list = []
+        for script in self.file_paths:
+            selected_script = open(script, 'r').read()
+            write_node_pattern = r'Write\s*{\s*((?:.*\n)*?)\s*}'
+            write_nodes = re.findall(write_node_pattern, selected_script)
+
+            write_node_index = next((i for i, wn in enumerate(write_nodes) if self.settings.write_node_name in wn), None)
+            if write_node_index is None:
+                self.wrong_write_node_name_list.append(os.path.basename(script))
+        return bool(self.wrong_write_node_name_list)
 
     def update(self):
         """
