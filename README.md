@@ -81,7 +81,7 @@ The details can change depending on the information available. The detail sectio
 
 ### Preferences
 
-![Preferences](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/PreferencesDialog.png)
+![Preferences]()
 
 The Preferences dialog will show up when the Preferences button on the main page is clicked. You cannot do any actions on the main page until you have closed the dialog.
 
@@ -119,6 +119,12 @@ A prompt will appear when the user has made changes that have not been saved.
 - There is no "Reset to default" functionality for settings.
 - There is no prompt to ask the user if they would like to close settings without the changed settings being saved.
 - The program may not respond occasionally while the files are being rendered. This is normal behavior.
+
+### Build v2.0
+- Added single nuke instance rendering functionality, this creatly improves render times (In Beta, will not be able to handle every render error).
+- Added Splash Screen. The splash screen will display loading information when the program launches without any save information. To show the user the program is doing something behind the scenes.
+- Added delete save file button. This button removes the save files for BNRQ until a new save file is created.
+- Added slight cancel functionality (can cancel when scripts are first loading, still cannot cancel while rendering is happening)
 
 
 ## Library references
