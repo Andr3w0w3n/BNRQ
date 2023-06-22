@@ -81,7 +81,7 @@ The details can change depending on the information available. The detail sectio
 
 ### Preferences
 
-![Preferences]()
+![Preferences](https://github.com/Andr3w0w3n/BNRQ/blob/main/Assets/ReadMe/PreferencesDialog.png)
 
 The Preferences dialog will show up when the Preferences button on the main page is clicked. You cannot do any actions on the main page until you have closed the dialog.
 
