@@ -9,18 +9,23 @@ purposes as well.
 
 ## Content Description
 Assets: *A folder that contains any image, video, or audio assets for the project*
-<br>RenderQueue Builds : *The build folders for each exe build. See the bottom of [Notes](https://github.com/Andr3w0w3n/BNRQ#notes) for detailed information on each of the builds*
+<br>BNRQ Builds : *The build folders for each exe build. See the bottom of [Notes](https://github.com/Andr3w0w3n/BNRQ#notes) for detailed information on each of the builds*
 <br>CodecLookup.py : *This is a simple class that is one massive dictionary for easy codec lookup and translation*
 <br>ErrorCodes.py : *This is a class that makes it easier to access and read any error codes*
+<br>FourCharacter-Codes.json : *A list of the character codes that the code references* 
+<br>LaunchSplashScreen.py : *This class launches the splash screen in a separate thread*
 <br>LICENSE : *The license for BNRQ*
 <br>MainWindowTab.py : *This is the class that holds the code for the Main Window Tab. This includes functionality and look*
 <br>PreferencesTab.py : *This is the class that holds the code for the Preferences Tab. This includes functionality and look*
 <br>RenderQ.py : *This is the class that holds the main function and launches the pyside application*
 <br>RenderScript.py : *This is a python script built for the program to run in Nuke. It opens a designated project and renders it.
 <br>		&#9;Returning an exit code that the program may use to display errors if any occur.*
-<br>settings.json : *The settings file holding all settings so they may be accessed next application launch*
+<br>RenderScriptList.py : *This python script renders the scripts all in 1 instance of nuke*
+<br>SeparateBootupThread.py : *This script is unused but was originally to be used for booting up the program in a separate thread*
+<br>SeparateThread.py: *This script houses all the methods that are used in a separate thread for easier access*
 <br>Settings.py : *This is the class that runs and manages settings for the pyside application.*
 <br>setup.py : *This is for construction of the executable. It is used to make the .spec file*
+<br>SplashScreen.py : *a class script that makes the splash screen*
 
 <br>
 
