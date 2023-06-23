@@ -3,11 +3,12 @@ import sys
 import os
 
 APP = ['RenderQ.py']
-APP_NAME = 'RenderQ'
-DATA_FILES = [('scripts', ['RenderQ/scripts/RenderScript.py'])]
+APP_NAME = 'BNRQ'
+DATA_FILES = [('scripts', ['BNRQ/scripts/RenderScript.py', 'BNRQ/scripts/RenderScriptList.py']),
+              ('data', ['FourCharacter-Codes.json'])]
 OPTIONS = {
-    'packages': ['RenderQ'],
-    'include_files': ['RenderQ/scripts/RenderScript.py'],
+    'packages': ['BNRQ'],
+    'include_files': ['BNRQ/scripts/RenderScript.py', 'BNRQ/scripts/RenderScriptList.py'],
     'entry_points': {
         'console_scripts': [
             'RenderQ = RenderQ.RenderQ:main'
@@ -16,11 +17,11 @@ OPTIONS = {
 }
 
 setuptools.setup(
-    name="NukeRenderQueue",
-    version="0.1",
+    name="Basic Nuke Render Queue",
+    version="2.0",
     author="Andrew Owen",
     author_email="waowen17@gmail.com",
-    description="This is a basic nuke render program.",
+    description="This is a basic nuke render queue.",
     long_description_content_type="text/markdown",
     url="https://github.com/Andr3w0w3n/BNRQ",
     packages=setuptools.find_packages(),
@@ -28,14 +29,18 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: Windows 10",
     ],
-    python_requires='>=3.10.11',
+    python_requires='>=3.7.7',
     install_requires=[
         # List your dependencies here
     ],
     options={
-        'pyinstaller': OPTIONS
+        'build_exe': {
+            'packages': OPTIONS['packages'],
+            'include_files': OPTIONS['include_files']
+        }
     },
-    app=APP,
     data_files=DATA_FILES,
-    setup_requires=['pyinstaller']
+    entry_points=OPTIONS['entry_points'],
+    setup_requires=['pyinstaller'],
+    executables=[setuptools.Executable(script='RenderQ.py', base=None)]
 )

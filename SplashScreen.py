@@ -44,11 +44,14 @@ class SplashScreen(QSplashScreen):
         self.logo_filepath = None
         try:
             base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-            self.logo_filepath = os.path.join(base_path, "./Assets/Logo/Logo.png")
+            self.logo_filepath = os.path.join(base_path, "Logo.png")
             if not os.path.exists(self.logo_filepath):
                 raise FileNotFoundError
         except FileNotFoundError:           
             self.logo_filepath = "./Assets/Logo/Logo.png"
+            
+        if not os.path.exists(self.logo_filepath):
+            print("No logo image filepath exists", self.logo_filepath)
 
         self.setFixedSize(primary_screen_resolution.width()/2, 
                           primary_screen_resolution.height()/2)
